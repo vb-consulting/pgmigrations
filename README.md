@@ -1,4 +1,321 @@
-# pgmigrations
+# PgMigrations
 
-Node tool that runs PostgreSQL migrations in a Flyway format
+![npm version](https://badge.fury.io/js/pgmigrations.svg)
+![License](https://img.shields.io/badge/license-MIT-green)
+![GitHub Stars](https://img.shields.io/github/stars/vb-consulting/pgmigrations?style=social)
+![GitHub Forks](https://img.shields.io/github/forks/vb-consulting/pgmigrations?style=social)
+
+Lightweight, zero-dependency, PostgreSQL Migration and PostgreSQL tool for Node.js and NPM.
+
+Use the `db` command to manage migrations and run database commands:
+
+```console
+> npx db --help
+Usage:
+ db [command] [switches]
+
+Commands:
+up               Run migrations migrations in order: before, before repeatable, up, repeatable, after. Optional switches: --list, --dry, --full, --dump.
+down             Run only down migrations. Optional switches: --list, --dry, --full, --dump.
+run | exec       Run a command or a script file with psql. Command text or a script file is required as the second argument. Any additional arguments will be passed to a psql command.
+dump | schema    Run pg_dump command with --schema-only --encoding=UTF8 swtiches on (plus schemaDumpAdditionalArgs from the config). Any additional arguments will be passed to pg_dump command.
+psql             Run arbitrary psql command or open psql shell. Any additional arguments will be passed to a psql.
+
+Switches:
+-h, --help       Show help
+--list           List available migrations in this direction (up or down).
+--dry            Run in the migrations dry run mode on database in this direction (up or down). No changes will be made to the database (rollbacks changes).
+--full           Executes all migrations in this direction (up or down). Schema history will be ignored.
+--dump           Dump the SQL for the migration to the console instead of executing it.
+--verbose        Run in verbose mode. This switch applies to all commands. Default is false.
+
+Config file:
+--config=[file]  Set the custom config file instead of the default config file (db.js). This switch applies to all commands.
+```
+
+Examples:
+
+- Execute a query:
+  
+```console
+> npx db run "select * from city" 
+```
+
+- Execute a script:
+  
+```console
+> npx db run ./script1.sql
+```
+
+- List all tables
+  
+```console
+> npx db run \dt
+```
+
+- Display psql help
+  
+```console
+> npx db run --help
+```
+
+- Enter the psql interactive mode
+
+```console
+> npx db psql
+```
+
+- Display database schema to console
+
+```console
+> npx db dump
+```
+
+- Write database schema to file
+
+```console
+> npx db dump --file schema.sql
+```
+
+- List all available migrations
+
+```console
+> npx db up --list
+```
+
+- Run all UP migrations
+
+```console
+> npx db up
+```
+
+Etc.
+
+Notes:
+
+This tool spawns `psql` or `pg_dump` external processes to execute database commands. That means, that PostgreSQL client tools must be installed on the system to be able to use this package. PostgreSQL client tools are distributed with the default installation so most likely you already have them pre-installed.
+
+If you don't, there is an option to install client tools only:
+- On Linux systems, there is a `postgresql-client` package, the apt installation would be then: `$ apt-get install -y postgresql-client` for the latest version.
+- On Windows systems, there is an option to install client tools only in the official installer.
+
+The `db` tool from this package will pass your configuration to the PostgreSQL tools to be able to manage the database.
+
+## Migration Naming Convention
+
+### Versioned Migrations
+
+`[prefix][version][separator][description][suffix]`
+
+Versioned migrations run once per version number in order of the versions.
+
+Versioned migrations can be:
+
+1) Version (version up).
+2) Undo (version down).
+
+`V001__my_migration.sql`
+
+`U002__undo_my_migration.sql`
+
+- `V` is a prefix for migration up. This version migration. Prefix is configurable.
+- `U` is a prefix for migration down. This undo migration. Prefix is configurable.
+- `002` is version info or the version number but it can be any text or number.
+- `__` is a separator. Separator is configurable.
+- `my_migration` and `undo_my_migration` are migration descriptions. This goes to the migration table as the description without underscores.
+- `.sql` is the migration suffix. This goes to the migration table as the type with the removed dot and in uppercase.
+
+### Repeatable Migrations
+
+`[prefix][separator][description][suffix]`
+
+Repeatable migrations can be:
+
+1) Repeatable migration: executed only once per file content. This migration will be executed only if the content is changed.
+2) Repeatable before: as the normal repeatable, only run before version migration.
+3) Before and after migrations. Migrations are executed always regardless of content.
+
+Examples:
+
+`R__my_migration.sql`
+
+`R_before__my_migration.sql`
+
+`after__my_migration.sql`
+
+`after__my_migration.sql`
+
+
+- `R` is a prefix for repeatable migration. Prefix is configurable.
+- `R_before` is a prefix for repeatable before migration. Prefix is configurable.
+- `before` is a prefix for before migration. Prefix is configurable.
+- `after` is a prefix for before migration. Prefix is configurable.
+- `__` is a separator. Separator is configurable.
+- `my_migration` and `undo_my_migration` are migration descriptions. This goes to the migration table as the description without underscores.
+- `.sql` is the migration suffix. This goes to the migration table as the type with the removed dot and in uppercase.
+
+## Migration Order
+
+1) Before Migrations
+2) Repeatable Before Migrations
+3) Repeatable Migrations
+4) Versioned Migrations
+5) After Migrations
+
+## Configuration
+
+The tool will try to read the default configuration file from the running location. The default configuration file is `pg.js` or it can be set with a command line switch `--config=[file]`.
+
+Example:
+
+```js
+module.exports = {
+    host: "localhost",
+    port: "5432",
+    dbname: "dvdrental",
+    username: "postgres",
+    password: "postgres"
+}
+```
+
+Or, if you already have the `.ENV` file, and prefer to sue that, it can be as simple as:
+
+```js
+module.exports = { env: true }
+```
+
+Any key in this configuration will override the default values listed below.
+
+### Server Connection
+
+Optional connection parameters such as `host`, `port`, `dbname`, `username` and `passowrd`.
+
+If connection parameters are not set, the PostgreSQL client tools will try to get them from the environment variables, so these parameters can be set in the environment. 
+
+See the [documentation](https://www.postgresql.org/docs/current/libpq-envars.html) for more information.
+
+Alternatively, they can be set from the `.ENV` file, if the `env` option is used.
+
+### Environment
+
+#### psql
+
+Sets the name of the `psql` command executable. The default is `psql`.
+
+If the correct command executable is not in the search path you may have to set the right path manually with this configuration:
+
+- For Linux systems that would be: `/usr/lib/postgresql/{major_version}/bin/psql` 
+- For Windows systems that would be: `C:\Program Files\PostgreSQL\{major_version}\bin\psql.exe`
+
+#### pgdump
+
+Sets the name of the `pg_dump` command executable. The default is `pg_dump`.
+
+If the correct command executable is not in the search path you may have to set the right path manually with this configuration:
+
+- For Linux systems that would be: `/usr/lib/postgresql/{major_version}/bin/pg_dump` 
+- For Windows systems that would be: `C:\Program Files\PostgreSQL\{major_version}\bin\pg_dump.exe`
+
+#### schemaDumpAdditionalArgs
+
+Additional arguments for the dump schema command that will added by default when dumping the schema. The default value is `["--no-owner", "--no-acl"]` (skip the object owners and the access control list). This value, when set, is expected to be an array of strings.
+
+#### verbose
+
+Set to true to log additional information, including all commands issued to client tools. The default is false. This switch can also be set from the command line.
+
+#### env
+
+Set to true to parse the `.ENV` file and merge it with the configuration.
+Set to the string value to specify the file name to be parsed.
+
+The default is false (not used).
+
+All configuration files present in the env file will override values in the configuration. Additional keys for connection properties will also be parsed:
+- For the `host` value, additional keys: `pg_host`, `postgres_host`, `pghost`, `postgreshost`, `db_host`, `dbhost`.
+- For the `dbname` value, additional keys: `pg_dbname`, `postgres_dbname`, `pgdbname`, `postgresdbname`, `db_name`, `pg_db`, `postgres_db`, `db`, `pg_database`, `postgres_database`, `database`.
+- For the `username` value, additional keys: `pg_user`, `postgres_user`, `postgresuser`, `db_user`, `user`, `pg_username`, `postgres_username`, `pgusername`, `postgresusername`, `db_username`, `db_username`.
+- For the `password` value, additional keys: `pg_password`, `postgres_password`, `pgpassword`, `postgrespassword`, `db_password`, `pg_pass`, `postgres_pass`, `pg_pass`, `pgpass`, `postgrespass`, `db_pass`, `pass`.
+
+### Migrations
+
+#### migrationDir
+
+Relative directory name where the migration files are located. This value can be a string or array of strings for the multiple directory support.
+
+The default value is not set (empty string). This value needs to be set for every migration project (mandatory).
+
+#### keepMigrationDirHistory
+
+Migration scripts are created with a unique name in a temporary directory. Set this value to true to never delete old migration files in a temporary directory. The default value is false, temporary directory is emptied before the start of every migration.
+
+#### upPrefix
+
+Up version migration type prefix. The default is `V` (V for version).
+
+#### downPrefix
+
+Down version migration type prefix. The default is `U` (U for undo).
+
+#### repetablePrefix
+
+Repeatable migration type prefix. The default is `R` (R for repeatable).
+
+#### repetableBeforePrefix
+
+Repeatable before migration type prefix. The default is `R_before` (R for repeatable).
+
+#### beforePrefix
+
+Before migration type prefix. The default is `before`.
+
+#### afterPrefix
+
+The after migration type prefix. The default is `after`.
+
+#### separatorPrefix
+
+Separator prefix. The default value is `__`
+
+#### tmpDir
+
+Temporary directory for migration scripts. The Default value is `./tmp`, which is relative to the package directory in the node modules.
+
+#### historyTableSchema
+
+Schema name for the history table. If this schema doesn't exist, it will be created. The default is `public`.
+
+#### historyTableName
+
+Name of the history table. If this table doesn't exist, it will be created. The default is `schema_history`.
+
+#### hashFunction
+
+Default hash function used for hashing the content. The default value is the `SHA1` function:
+
+```javascript
+function(data) {
+    const hash = crypto.createHash('sha1');
+    hash.update(data);
+    return hash.digest('hex');
+}
+```
+
+#### sortFunction
+
+Default sort function used for sorting migration names. The default value is `(a, b) => a.localeCompare(b, "en")`.
+
+#### versionSortFunction
+
+Default sort function used for sorting migration versions. The default value is `(a, b) => a.localeCompare(b, "en", {numeric: true})`.
+
+## Contributing
+
+Contributions from the community are welcomed.
+Please make a pull request with a description if you wish to contribute.
+
+## License
+
+This project is licensed under the terms of the MIT license.
+
 
