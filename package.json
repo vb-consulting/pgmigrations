@@ -1,11 +1,11 @@
 {
   "name": "@vbilopav/pgmigrations",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "description": "PostgreSQL Migration Tool for Node.js and NPM",
   "author": "vb-consulting",
   "license": "MIT",
   "bin": {
-    "db": "./db.js"
+    "pgmigrations": "./db.js"
   },
   "repository": {
     "type": "git",

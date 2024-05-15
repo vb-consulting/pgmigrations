@@ -7,12 +7,12 @@
 
 Lightweight, zero-dependency, PostgreSQL Migration and PostgreSQL tool for Node.js and NPM.
 
-Use the `db` command to manage migrations and run database commands:
+Use the `pgmigrations` command to manage migrations and run database commands:
 
 ```console
-> npx db --help
+> npx pgmigrations --help
 Usage:
- db [command] [switches]
+ pgmigrations [command] [switches]
 
 Commands:
 up               Run migrations migrations in order: before, before repeatable, up, repeatable, after. Optional switches: --list, --dry, --full, --dump.
@@ -38,55 +38,55 @@ Examples:
 - Execute a query:
   
 ```console
-> npx db run "select * from city" 
+> npx pgmigrations run "select * from city" 
 ```
 
 - Execute a script:
   
 ```console
-> npx db run ./script1.sql
+> npx pgmigrations run ./script1.sql
 ```
 
 - List all tables
   
 ```console
-> npx db run \dt
+> npx pgmigrations run \dt
 ```
 
 - Display psql help
   
 ```console
-> npx db run --help
+> npx pgmigrations run --help
 ```
 
 - Enter the psql interactive mode
 
 ```console
-> npx db psql
+> npx pgmigrations psql
 ```
 
 - Display database schema to console
 
 ```console
-> npx db dump
+> npx pgmigrations dump
 ```
 
 - Write database schema to file
 
 ```console
-> npx db dump --file schema.sql
+> npx pgmigrations dump --file schema.sql
 ```
 
 - List all available migrations
 
 ```console
-> npx db up --list
+> npx pgmigrations up --list
 ```
 
 - Run all UP migrations
 
 ```console
-> npx db up
+> npx pgmigrations up
 ```
 
 Etc.
