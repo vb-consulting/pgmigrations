@@ -71,7 +71,7 @@ function formatByName(str, obj) {
 
 module.exports = async function(cmd, opt, config) {
     var mandatory = [
-        "migrationDir","upPrefix","downPrefix","repetablePrefix","repetableBeforePrefix",
+        "upPrefix","downPrefix","repetablePrefix","repetableBeforePrefix",
         "beforePrefix","afterPrefix","separatorPrefix",
         "historyTableName","historyTableSchema",
         "tmpDir","hashFunction"
@@ -110,11 +110,6 @@ module.exports = async function(cmd, opt, config) {
 
     try
     {
-        if (!fs.existsSync(config.migrationDir) || !fs.lstatSync(config.migrationDir).isDirectory()) {
-            error(`Migration directory ${config.migrationDir} does not exist or is not a directory. Please provide a valid migration directory.`);
-            return;
-        }
-
         if (!fs.existsSync(config.tmpDir)) {
             if (opt.verbose) {
                 console.log("Creating tmp directory: " + config.tmpDir);
@@ -163,7 +158,41 @@ module.exports = async function(cmd, opt, config) {
             }
         });
 
+        const hasMultipleDirs = Array.isArray(config.migrationDir) || config.upDirs.length || config.downDirs.length || config.repetableDirs.length || config.repetableBeforeDirs.length || config.beforeDirs.length || config.afterDirs.length;
+
         const migrationDirs = Array.isArray(config.migrationDir) ? config.migrationDir : [config.migrationDir];
+        
+        const upDirsHash = {};
+        const downDirsHash = {};
+        const repetableDirsHash = {};
+        const repetableBeforeDirsHash = {};
+        const beforeDirsHash = {};
+        const afterDirsHash = {};
+
+        if (config.upDirs && config.upDirs.length > 0) {
+            migrationDirs.push(...config.upDirs);
+            config.upDirs.forEach(d => upDirsHash[d] = true);
+        }
+        if (config.downDirs && config.downDirs.length > 0) {
+            migrationDirs.push(...config.downDirs);
+            config.downDirs.forEach(d => downDirsHash[d] = true);
+        }
+        if (config.repetableDirs && config.repetableDirs.length > 0) {
+            migrationDirs.push(...config.repetableDirs);
+            config.repetableDirs.forEach(d => repetableDirsHash[d] = true);
+        }
+        if (config.repetableBeforeDirs && config.repetableBeforeDirs.length > 0) {
+            migrationDirs.push(...config.repetableBeforeDirs);
+            config.repetableBeforeDirs.forEach(d => repetableBeforeDirsHash[d] = true);
+        }
+        if (config.beforeDirs && config.beforeDirs.length > 0) {
+            migrationDirs.push(...config.beforeDirs);
+            config.beforeDirs.forEach(d => beforeDirsHash[d] = true);
+        }
+        if (config.afterDirs && config.afterDirs.length > 0) {
+            migrationDirs.push(...config.afterDirs);
+            config.afterDirs.forEach(d => afterDirsHash[d] = true);
+        }
         
         const beforeList = [];
         const repetableBeforeList = [];
@@ -183,6 +212,9 @@ module.exports = async function(cmd, opt, config) {
 
         for (let i = 0; i < migrationDirs.length; i++) {
             const migrationDir = migrationDirs[i];
+            if (!migrationDir) {
+                continue;
+            }
             if (!fs.existsSync(migrationDir) || !fs.lstatSync(migrationDir).isDirectory()) {
                 error(`Migration directory ${migrationDir} does not exist or is not a directory. Please provide a valid migration directory.`);
                 return;
@@ -198,7 +230,13 @@ module.exports = async function(cmd, opt, config) {
                     return;
                 }
 
-                if (fileName.indexOf(config.separatorPrefix) == -1) {
+                if (fileName.indexOf(config.separatorPrefix) == -1 
+                    && repetableDirsHash[migrationDir] == false 
+                    && repetableBeforeDirsHash[migrationDir] == false
+                    && beforeDirsHash[migrationDir] == false
+                    && afterDirsHash[migrationDir] == false
+                    && upDirsHash[migrationDir] == false
+                    && downDirsHash[migrationDir] == false) {
                     warning(`Migration file ${fileName} does not contain separator prefix ${config.separatorPrefix}. Skipping...`);
                     return;
                 }
@@ -206,21 +244,22 @@ module.exports = async function(cmd, opt, config) {
                 let parts = fileName.split(config.separatorPrefix);
                 let prefix = parts[0];
                 let suffix = parts.slice(1).join(config.separatorPrefix);
-                
-                let name = Array.isArray(config.migrationDir) ? 
-                    migrationDir.split(".").slice(0, -1).join(".").replace(/_/g, " ") + " " + suffix.split(".").slice(0, -1).join(".").replace(/_/g, " ") :
+
+                let name = hasMultipleDirs ? 
+                    (migrationDir.replace(/_/g, " ").replace(/\./g, " ") + " " + suffix.split(".").slice(0, -1).join(".").replace(/_/g, " ")).trim() :
                     suffix.split(".").slice(0, -1).join(".").replace(/_/g, " ");
+
                 let version = null;
                 let type = null;
                 const meta = {};
 
                 const content = fs.readFileSync(filePath).toString();
                 const hash = config.hashFunction(content);
-                const script = Array.isArray(config.migrationDir) ? migrationDir + "/" + fileName : fileName;
+                const script = hasMultipleDirs ? migrationDir + "/" + fileName : fileName;
 
                 let pushTo = null;
 
-                if (prefix.startsWith(config.upPrefix)) {
+                if (prefix.startsWith(config.upPrefix) || upDirsHash[migrationDir]) {
                     if (isUp) {
                         version = prefix.slice(config.upPrefix.length).trim();
                         if (upVersions[version]) {
@@ -229,6 +268,11 @@ module.exports = async function(cmd, opt, config) {
                         }
                         upVersions[version] = script;
                         type = types.up;
+
+                        if (!version) {
+                            warning(`Migration file ${migrationDir}/${fileName} does not contain version. Skipping...`);
+                            return;
+                        }
 
                         if (versionDict[version]) {
                             return;
@@ -244,7 +288,7 @@ module.exports = async function(cmd, opt, config) {
                         pushTo = upList;
                     }
 
-                } else if (prefix.startsWith(config.downPrefix)) {
+                } else if (prefix.startsWith(config.downPrefix) || downDirsHash[migrationDir]) {
                     if (isDown) {
                         version = prefix.slice(config.downPrefix.length).trim();
                         if (downVersions[version]) {
@@ -253,6 +297,11 @@ module.exports = async function(cmd, opt, config) {
                         }
                         downVersions[version] = script;
                         type = types.down;
+
+                        if (!version) {
+                            warning(`Migration file ${migrationDir}/${fileName} does not contain version. Skipping...`);
+                            return;
+                        }
 
                         if (!versionDict[version]) {
                             return;
@@ -268,7 +317,8 @@ module.exports = async function(cmd, opt, config) {
                         meta.up = versionDict[version];
                         pushTo = downList;
                     }
-                } else if (prefix == config.repetablePrefix) {
+
+                } else if (prefix == config.repetablePrefix || repetableDirsHash[migrationDir]) {
                     if (isUp) {
                         type = types.repetable;
 
@@ -277,7 +327,7 @@ module.exports = async function(cmd, opt, config) {
                         }
                         pushTo = repetableList;
                     }
-                } else if (prefix == config.repetableBeforePrefix) {
+                } else if (prefix == config.repetableBeforePrefix || repetableBeforeDirsHash[migrationDir]) {
                     if (isUp) {
                         type = types.repetableBefore;
                         if (repetableHashes[hash + ";" + name]) {
@@ -285,13 +335,13 @@ module.exports = async function(cmd, opt, config) {
                         }
                         pushTo = repetableBeforeList;
                     }
-                } else if (prefix == config.beforePrefix) {
+                } else if (prefix == config.beforePrefix || beforeDirsHash[migrationDir]) {
                     if (isUp) {
                         type = types.before;
                         pushTo = beforeList;
                     }
 
-                } else if (prefix == config.afterPrefix) {
+                } else if (prefix == config.afterPrefix || afterDirsHash[migrationDir]) {
                     if (isUp) {
                         type = types.after;
                         pushTo = afterList;

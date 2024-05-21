@@ -14,6 +14,14 @@ module.exports = {
     env: false,
 
     migrationDir: "",
+    
+    upDirs: [],
+    downDirs: [],
+    repetableDirs: [],
+    repetableBeforeDirs: [],
+    beforeDirs: [],
+    afterDirs: [],
+
     keepMigrationDirHistory: false,
     upPrefix: "V",
     downPrefix: "U",

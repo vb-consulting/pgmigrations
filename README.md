@@ -164,7 +164,7 @@ Examples:
 
 ## Configuration
 
-The tool will try to read the default configuration file from the running location. The default configuration file is `pg.js` or it can be set with a command line switch `--config=[file]`.
+The tool will try to read the default configuration file from the running location. The default configuration file is `db.js` or it can be set with a command line switch `--config=[file]`.
 
 Example:
 
@@ -243,7 +243,31 @@ All configuration files present in the env file will override values in the conf
 
 Relative directory name where the migration files are located. This value can be a string or array of strings for the multiple directory support.
 
-The default value is not set (empty string). This value needs to be set for every migration project (mandatory).
+The default value is not set (empty string). This value needs to be set for every migration project.
+
+#### upDirs
+
+List of directories for versioned UP migrations. Prefix and version number is mandatory.
+
+#### downDirs
+
+List of directories for versioned DOWN migrations. Prefix and version number is mandatory.
+
+#### repetableDirs
+
+List of directories for versioned REPETABLE migrations. Prefix and version number is mandatory.
+
+#### repetableBeforeDirs
+
+List of directories for versioned REPETABLE BEFORE migrations. Prefix and version number is mandatory.
+
+#### beforeDirs
+
+List of directories for versioned BEFORE migrations. Prefix and version number is mandatory.
+
+#### afterDirs
+
+List of directories for versioned AFTER migrations. Prefix and version number is mandatory.
 
 #### keepMigrationDirHistory
 

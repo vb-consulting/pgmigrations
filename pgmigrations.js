@@ -7,7 +7,7 @@ const { error, warning, info, sections } = require("./log.js");
 const { command: commandRunner, schema, psql } = require("./runner.js");
 const migrate = require("./migration.js");
 
-var defaultconfigFile = "./pg.js";
+var defaultconfigFile = "./db.js";
 
 var args = process.argv.slice(2);
 var cmd = args[0];
@@ -141,7 +141,7 @@ if (!cmd || cmd === 'help' || cmd === '-h' || cmd === '--help') {
 
     console.log('\nConfig file:');
     sections([
-        {key: '--config=[file]', value: 'Set the custom config file instead of the default config file (pg.js). This switch applies to all commands.'}
+        {key: '--config=[file]', value: 'Set the custom config file instead of the default config file (db.js). This switch applies to all commands.'}
     ], 16);
 
     console.log();
