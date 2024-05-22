@@ -6,6 +6,7 @@ const mainConfig = require("./config.js");
 const { error, warning, info, sections } = require("./log.js");
 const { command: commandRunner, schema, psql } = require("./runner.js");
 const migrate = require("./migration.js");
+const tests = require("./tests.js");
 
 var defaultconfigFile = "./db.js";
 
@@ -117,7 +118,7 @@ cmd = cmd.toLowerCase();
 if (!cmd || cmd === 'help' || cmd === '-h' || cmd === '--help') {
 
     console.log('Usage:');
-    info('db [command] [switches]');
+    info('pgmigrations [command] [switches]');
     console.log('\nCommands:');
     
     sections([  
@@ -126,13 +127,14 @@ if (!cmd || cmd === 'help' || cmd === '-h' || cmd === '--help') {
         {key: "run | exec", value: "Run a command or a script file with psql. Command text or a script file is required as the second argument. Any additional arguments will be passed to a psql command."},
         {key: "dump | schema", value: "Run pg_dump command with --schema-only --encoding=UTF8 swtiches on (plus schemaDumpAdditionalArgs from the config). Any additional arguments will be passed to pg_dump command."},
         {key: "psql", value: "Run arbitrary psql command or open psql shell. Any additional arguments will be passed to a psql."},
+        {key: "test", value: "Run database tests."},
     ], 16);
     
     console.log('\nSwitches:');
 
     sections([
         {key: "-h, --help", value: "Show help"},
-        {key: "--list", value: "List available migrations in this direction (up or down)."},
+        {key: "--list", value: "List available migrations in this direction (up or down) or list available database tests."},
         {key: "--dry", value: "Run in the migrations dry run mode on database in this direction (up or down). No changes will be made to the database (rollbacks changes)."},
         {key: "--full", value: "Executes all migrations in this direction (up or down). Schema history will be ignored."},
         {key: "--dump", value: "Dump the SQL for the migration to the console instead of executing it."},
@@ -301,6 +303,38 @@ if (cmd == "up" || cmd == "down") {
     const config = buildConfig(userConfig, opt);
     opt.verbose = opt.verbose || config.verbose;
     psql(opt, additionalArgs, config);
+
+} else if (cmd == "test") {
+
+    let list = false;
+    let userConfig;
+
+    for (let i = 0; i < options.length; i++) {
+        let opt = options[i];
+
+        if (opt.startsWith("-")) {
+            if (opt == "--list") {
+                list = true;
+            } else if (opt == "--verbose") {
+                verbose = true;
+            } else if (opt.startsWith("--config")) {
+                let parts = opt.split("=");
+                if (parts.length <= 1) {
+                    error("Config file is required. Please provide a valid config file.");
+                    return;
+                }
+                userConfig = parts[1];
+            } else {
+                error("Unknown option: " + opt + ". Please provide a valid option");
+                return;
+            }
+        }
+    }
+
+    const opt = {list, verbose};
+    const config = buildConfig(userConfig, opt);
+    opt.verbose = opt.verbose || config.verbose;
+    tests(opt, config);
 
 } else {
 

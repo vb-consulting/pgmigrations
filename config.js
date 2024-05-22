@@ -42,4 +42,8 @@ module.exports = {
     },
     sortFunction: (a, b) => a.localeCompare(b, "en"),
     versionSortFunction: (a, b) => a.localeCompare(b, "en", {numeric: true}),
+
+    testFunctionsSchemaContains: null,
+    testFunctionsNameContains: null,
+    testFunctionsCommentContains: "test",
 }

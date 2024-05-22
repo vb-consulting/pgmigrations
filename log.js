@@ -43,5 +43,14 @@ module.exports = {
             process.stdout.write(item.key + " ".repeat(len - item.key.length));
             console.log(colors.fg.cyan, item.value, colors.reset)
         }
+    },
+
+    passed: (msg) => {
+        process.stdout.write(colors.fg.green + "Passed: " + colors.reset + msg);
+        console.log(colors.reset);
+    },
+    failed: (msg) => {
+        process.stdout.write(colors.fg.red + "Failed: " + colors.reset + msg);
+        console.log(colors.reset);
     }
 };

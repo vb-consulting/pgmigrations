@@ -1,6 +1,6 @@
 {
   "name": "@vbilopav/pgmigrations",
-  "version": "0.0.7",
+  "version": "0.1.0",
   "description": "PostgreSQL Migration Tool for Node.js and NPM",
   "author": "vb-consulting",
   "license": "MIT",
@@ -19,7 +19,12 @@
     "automatic",
     "psql",
     "schema",
-    "pg"
+    "pg",
+    "testing",
+    "tests",
+    "database",
+    "unit tests",
+    "database tests"
   ],
   "bugs": {
     "url": "https://github.com/vb-consulting/pgmigrations/issues"

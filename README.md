@@ -20,10 +20,11 @@ down             Run only down migrations. Optional switches: --list, --dry, --f
 run | exec       Run a command or a script file with psql. Command text or a script file is required as the second argument. Any additional arguments will be passed to a psql command.
 dump | schema    Run pg_dump command with --schema-only --encoding=UTF8 swtiches on (plus schemaDumpAdditionalArgs from the config). Any additional arguments will be passed to pg_dump command.
 psql             Run arbitrary psql command or open psql shell. Any additional arguments will be passed to a psql.
+test             Run database tests.
 
 Switches:
 -h, --help       Show help
---list           List available migrations in this direction (up or down).
+--list           List available migrations in this direction (up or down) or list available database tests.
 --dry            Run in the migrations dry run mode on database in this direction (up or down). No changes will be made to the database (rollbacks changes).
 --full           Executes all migrations in this direction (up or down). Schema history will be ignored.
 --dump           Dump the SQL for the migration to the console instead of executing it.
@@ -332,6 +333,38 @@ Default sort function used for sorting migration names. The default value is `(a
 #### versionSortFunction
 
 Default sort function used for sorting migration versions. The default value is `(a, b) => a.localeCompare(b, "en", {numeric: true})`.
+
+### Testing
+
+Test command will run tests on PostgreSQL functions and procedures: 
+
+- Test functions and procedures are required to have no parameters.
+- The test is considered passed if:
+  - Doesn't raise any exceptions.
+  - The function doesn't return either boolean False, or text `f`, or return text doesn't start with `not ok` (case insensitive).
+
+To assert a failed test:
+- Raise custom exception with a custom message: `raise exception 'failed message';`
+- Return false: `return false;`
+- Return text that starts with "not ok": `return 'not ok: failed message'`
+
+#### testFunctionsSchemaContains
+
+Default: `null`
+
+Test function or procedure schema contains this text (case insensitive) or `null` for all non-system schemas.
+
+#### testFunctionsNameContains
+
+Default: `null`
+
+Test function or procedure name contains this text (case insensitive) or `null` for all function or procedure names without parameters.
+
+#### testFunctionsCommentContains
+
+Default: `test`
+
+Test function or procedure comment contains this text (case insensitive) or `null` for all function or procedure names without parameters.
 
 ## Contributing
 

@@ -2,15 +2,19 @@ const fs = require("fs");
 const cp = require("child_process");
 const {info, error, warning} = require("./log.js");
 
-const message = (msg) => {
+const message = (msg, error) => {
     msg.split("\n").forEach(line => {
-        var lower = line.toLowerCase();
-        if (lower.indexOf("error:") > -1 || lower.indexOf("fatal:") > -1 || lower.indexOf("panic:") > -1) {
+        if (error) {
             error(line);
-        } else if (lower.indexOf("warning:") > -1) {
-            warning(line);
         } else {
-            info(line);
+            var lower = line.toLowerCase();
+            if (lower.indexOf("error:") > -1 || lower.indexOf("fatal:") > -1 || lower.indexOf("panic:") > -1) {
+                error(line);
+            } else if (lower.indexOf("warning:") > -1) {
+                warning(line);
+            } else {
+                info(line);
+            }
         }
     });
 };
@@ -104,7 +108,7 @@ function run(options) {
                     let index = stdoutBuffer.indexOf(prefix);
                     while (index !== -1) {
                         const msg = stdoutBuffer.slice(0, index).trim();
-                        if (msg) {
+                        if (msg && !options.muted) {
                             message(msg);
                         }
                         stdoutBuffer = stdoutBuffer.slice(index + prefix.length);
@@ -119,8 +123,8 @@ function run(options) {
                     let index = stderrBuffer.indexOf(prefix);
                     while (index !== -1) {
                         const msg = stderrBuffer.slice(0, index).trim();
-                        if (msg) {
-                            message(msg);
+                        if (msg && !options.muted) {
+                            message(msg, true);
                         }
                         stderrBuffer = stderrBuffer.slice(index + prefix.length);
                         index = stderrBuffer.indexOf(prefix);
@@ -135,7 +139,7 @@ function run(options) {
                         reject(stderrBuffer.trim());
                     }
                     
-                } else {
+                } else if (!options.muted) {
                     if (stdoutBuffer) {
                         const msg = stdoutBuffer.trim();
                         if (msg) {
@@ -145,17 +149,23 @@ function run(options) {
                     if (stderrBuffer) {
                         const msg = stderrBuffer.trim();
                         if (msg) {
-                            message(msg);
+                            message(msg, true);
                         }
                     }
                     resolve(code);
+                } else {
+                    resolve({
+                        stdout: stdoutBuffer.trim(),
+                        stderr: stderrBuffer.trim(),
+                        code
+                    });
                 }
             });
         }
     });
 }
 
-function command(command, opt, additionalArgs, config, isCommand = false) {
+function command(command, opt, additionalArgs, config, isCommand = false, muted = false) {
     var fileExists = false;
     if (!isCommand) {
         fileExists = (fs.existsSync(command) && fs.lstatSync(command).isFile());
@@ -169,7 +179,8 @@ function command(command, opt, additionalArgs, config, isCommand = false) {
         additionalArgs: additionalArgs,
         verbose: opt.verbose,
         inherit: false,
-        returnBuffer: false
+        returnBuffer: false,
+        muted: muted
     })
 }
 
