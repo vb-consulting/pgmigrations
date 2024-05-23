@@ -90,5 +90,10 @@ module.exports = async function(opt, config) {
         failed(failedCount.toString());
     }
     console.timeEnd(label);
+
+    if (failedCount > 0) {
+        // exit process with non-zero status
+        process.exit(1);
+    }
 }
 

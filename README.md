@@ -5,7 +5,12 @@
 ![GitHub Stars](https://img.shields.io/github/stars/vb-consulting/pgmigrations?style=social)
 ![GitHub Forks](https://img.shields.io/github/forks/vb-consulting/pgmigrations?style=social)
 
-Lightweight, zero-dependency, PostgreSQL Migration and PostgreSQL tool for Node.js and NPM.
+Lightweight, Zero-Dependency, PostgreSQL Tool for Node.js and NPM. You can:
+
+- Run Migrations Up or Down (Repeatable, Version, Before or After).
+- Run Arbitrary `psql` Commands by using your Project Configuration.
+- Create Database Schema Dumps by using your Project Configuration.
+- Run PostgreSQL Database Unit Tests in Functions or Procedures.
 
 Use the `pgmigrations` command to manage migrations and run database commands:
 
@@ -88,6 +93,12 @@ Examples:
 
 ```console
 > npx pgmigrations up
+```
+
+- Run database tests
+
+```console
+> npx pgmigrations test
 ```
 
 Etc.
