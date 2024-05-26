@@ -158,8 +158,6 @@ module.exports = async function(cmd, opt, config) {
             }
         });
 
-        const hasMultipleDirs = Array.isArray(config.migrationDir) || config.upDirs.length || config.downDirs.length || config.repetableDirs.length || config.repetableBeforeDirs.length || config.beforeDirs.length || config.afterDirs.length;
-
         const migrationDirs = Array.isArray(config.migrationDir) ? config.migrationDir : [config.migrationDir];
         
         const upDirsHash = {};
@@ -210,16 +208,35 @@ module.exports = async function(cmd, opt, config) {
         const versionUpNames = {};
         const versionDownNames = {};
 
+        if (config.recursiveDirs) {
+            var migrationDirsTmp = [...migrationDirs];
+            for (let i = 0; i < migrationDirsTmp.length; i++) { 
+                const migrationDir = migrationDirsTmp[i];
+                fs.readdirSync(migrationDir, {recursive: true}).forEach(subDir => {
+                    const subDirPath = path.join(migrationDir, subDir);
+                    if (fs.lstatSync(subDirPath).isDirectory()) {
+                        migrationDirs.push(subDirPath);
+                    }
+                });
+            }
+        }
+        const hasMultipleDirs = migrationDirs.length > 1;
+        var parsedDirs = {};
         for (let i = 0; i < migrationDirs.length; i++) {
             const migrationDir = migrationDirs[i];
             if (!migrationDir) {
                 continue;
             }
+            var parsed = migrationDir.replace(/[^a-zA-Z0-9]/g, "");
+            if (parsedDirs[parsed]) {
+                continue;
+            }
+            parsedDirs[parsed] = true;
+
             if (!fs.existsSync(migrationDir) || !fs.lstatSync(migrationDir).isDirectory()) {
                 error(`Migration directory ${migrationDir} does not exist or is not a directory. Please provide a valid migration directory.`);
                 return;
             }
-
             fs.readdirSync(migrationDir).forEach(fileName => {
                 const filePath = path.join(migrationDir, fileName);
                 if (fs.lstatSync(filePath).isDirectory()) {
@@ -260,7 +277,7 @@ module.exports = async function(cmd, opt, config) {
 
                 const content = fs.readFileSync(filePath).toString();
                 const hash = config.hashFunction(content);
-                const script = hasMultipleDirs ? migrationDir + "/" + fileName : fileName;
+                const script = hasMultipleDirs ? (migrationDir + "/" + fileName).replace(/\\/g, "/") : fileName;
 
                 let pushTo = null;
 
@@ -531,4 +548,3 @@ $migration_${ident}$;`);
         warning("Migration aborted!");
     }
 }
-

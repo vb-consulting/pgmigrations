@@ -1,5 +1,6 @@
 const crypto = require('crypto');
-const migration = require('./migration');
+const os = require('os');
+const path = require('path');
 
 module.exports = {
     host: "",
@@ -23,7 +24,6 @@ module.exports = {
     beforeDirs: [],
     afterDirs: [],
 
-    keepMigrationDirHistory: false,
     upPrefix: "V",
     downPrefix: "U",
     repetablePrefix: "R",
@@ -32,8 +32,9 @@ module.exports = {
     afterPrefix: "after",
     separatorPrefix: "__",
     migrationExtensions: [".sql"],
-
-    tmpDir: "./tmp",
+    recursiveDirs: false,
+    keepMigrationDirHistory: false,
+    tmpDir: path.join(os.tmpdir(), "___pgmigrations"),
     historyTableName: "schema_history",
     historyTableSchema: "public",
 
