@@ -226,8 +226,14 @@ module.exports = async function(cmd, opt, config) {
                     return;
                 }
 
-                if (!fileName.toLocaleLowerCase().endsWith('.sql')) {
-                    return;
+                for (let j = 0; j < config.migrationExtensions.length; j++) {
+                    const ext = config.migrationExtensions[j].toLowerCase();
+                    if (!fileName.toLowerCase().endsWith(ext)) {
+                        if (opt.verbose) {
+                            warning(`Skipping file ${fileName} with invalid extension. Valid extensions are ${config.migrationExtensions.join(", ")}.`);
+                        }
+                        return;
+                    }
                 }
 
                 if (fileName.indexOf(config.separatorPrefix) == -1 

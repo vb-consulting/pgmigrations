@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const migration = require('./migration');
 
 module.exports = {
     host: "",
@@ -30,6 +31,7 @@ module.exports = {
     beforePrefix: "before",
     afterPrefix: "after",
     separatorPrefix: "__",
+    migrationExtensions: [".sql"],
 
     tmpDir: "./tmp",
     historyTableName: "schema_history",
