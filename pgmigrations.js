@@ -13,34 +13,27 @@ var defaultconfigFile = "./db.js";
 var args = process.argv.slice(2);
 var cmd = args[0];
 
-function buildConfig(userConfig, opt) {
-    var configFile;
-    if (userConfig) {
-        userConfig = path.join(process.cwd(), userConfig);
-        if (fs.existsSync(userConfig) && fs.lstatSync(userConfig).isFile()) {
+var userConfigs = [defaultconfigFile];
+
+function buildConfig(opt) {
+    for (var i = 0; i < userConfigs.length; i++) {
+        var configFile = path.join(process.cwd(), userConfigs[i]);
+        if (fs.existsSync(configFile) && fs.lstatSync(configFile).isFile()) {
             if (opt.verbose) {
-                console.log("Using user config file: " + userConfig);
+                console.log("Using default config file: " + configFile);
             }
-            configFile = userConfig;
-        }
-    }
-    if (!configFile) {
-        defaultconfigFile = path.join(process.cwd(), defaultconfigFile);
-        if (fs.existsSync(defaultconfigFile) && fs.lstatSync(defaultconfigFile).isFile()) {
-            if (opt.verbose) {
-                console.log("Using default config file: " + defaultconfigFile);
+            var config = require(configFile);
+
+            for (var key in config) {
+                if (mainConfig[key] === undefined) {
+                    error("Unknown config key: " + key +". Please provide a valid config key.");
+                    return;
+                }
+                mainConfig[key] = config[key];
             }
-            configFile = defaultconfigFile;
-        }
-    }
-    if (configFile) {
-        var config = require(configFile);
-        for (var key in config) {
-            if (mainConfig[key] === undefined) {
-                error("Unknown config key: " + key +". Please provide a valid config key.");
-                return;
-            }
-            mainConfig[key] = config[key];
+
+        } else if (userConfigs[i] !== defaultconfigFile) {
+            warning("Config file not found: " + configFile + ". Please provide a valid config file.");
         }
     }
 
@@ -128,6 +121,7 @@ if (!cmd || cmd === 'help' || cmd === '-h' || cmd === '--help') {
         {key: "dump | schema", value: "Run pg_dump command with --schema-only --encoding=UTF8 swtiches on (plus schemaDumpAdditionalArgs from the config). Any additional arguments will be passed to pg_dump command."},
         {key: "psql", value: "Run arbitrary psql command or open psql shell. Any additional arguments will be passed to a psql."},
         {key: "test", value: "Run database tests."},
+        {key: "config", value: "console.log the current configuration."},
     ], 16);
     
     console.log('\nSwitches:');
@@ -141,9 +135,10 @@ if (!cmd || cmd === 'help' || cmd === '-h' || cmd === '--help') {
         {key: "--verbose", value: "Run in verbose mode. This switch applies to all commands. Default is false."}
     ], 16);
 
-    console.log('\nConfig file:');
+    console.log('\nConfigurations files:');
     sections([
-        {key: '--config=[file]', value: 'Set the custom config file instead of the default config file (db.js). This switch applies to all commands.'}
+        {key: '', value: './db.js from the current dir is the default configuration file. It will be ignored if not found.'},
+        {key: '--config=[file]', value: 'Set the custom config file or multiple files (multiple --config switches). Config files are merged in the order they are provided.'}
     ], 16);
 
     console.log();
@@ -158,7 +153,6 @@ if (cmd == "up" || cmd == "down") {
     let dry = false;
     let full = false;
     let dump = false;
-    let userConfig;
 
     for (let i = 0; i < options.length; i++) {
         let opt = options[i];
@@ -180,7 +174,7 @@ if (cmd == "up" || cmd == "down") {
                     error("Config file is required. Please provide a valid config file.");
                     return;
                 }
-                userConfig = parts[1];
+                userConfigs.push(parts[1]);
             } else {
                 error("Unknown option: " + opt + ". Please provide a valid option");
                 return;
@@ -194,14 +188,13 @@ if (cmd == "up" || cmd == "down") {
     }
 
     const opt = {list, dry, dump, full, verbose};
-    const config = buildConfig(userConfig, opt);
+    const config = buildConfig(opt);
     opt.verbose = opt.verbose || config.verbose;
     migrate(cmd, opt, config);
 
 } else if (cmd == "run" || cmd == "exec") {
 
     let command;
-    let userConfig;
     let additionalArgs = [];
 
     for (let i = 0; i < options.length; i++) {
@@ -216,7 +209,7 @@ if (cmd == "up" || cmd == "down") {
                     error("Config file is required. Please provide a valid config file.");
                     return;
                 }
-                userConfig = parts[1];
+                userConfigs.push(parts[1]);
             } else {
                 additionalArgs.push(opt);
             }
@@ -236,13 +229,12 @@ if (cmd == "up" || cmd == "down") {
     }
 
     const opt = {verbose};
-    const config = buildConfig(userConfig, opt);
+    const config = buildConfig(opt);
     opt.verbose = opt.verbose || config.verbose;
     commandRunner(command, opt, additionalArgs, config);
 
 } else if (cmd == "dump" || cmd == "schema") {
 
-    let userConfig;
     let additionalArgs = [];
 
     for (let i = 0; i < options.length; i++) {
@@ -257,7 +249,7 @@ if (cmd == "up" || cmd == "down") {
                     error("Config file is required. Please provide a valid config file.");
                     return;
                 }
-                userConfig = parts[1];
+                userConfigs.push(parts[1]);
             } else {
                 additionalArgs.push(opt);
             }
@@ -268,13 +260,12 @@ if (cmd == "up" || cmd == "down") {
     }
 
     const opt = {verbose};
-    const config = buildConfig(userConfig, opt);
+    const config = buildConfig(opt);
     opt.verbose = opt.verbose || config.verbose;
     schema(opt, additionalArgs, config);
 
 } else if (cmd == "psql") {
 
-    let userConfig;
     let additionalArgs = [];
 
     for (let i = 0; i < options.length; i++) {
@@ -289,7 +280,7 @@ if (cmd == "up" || cmd == "down") {
                     error("Config file is required. Please provide a valid config file.");
                     return;
                 }
-                userConfig = parts[1];
+                userConfigs.push(parts[1]);
             } else {
                 additionalArgs.push(opt);
             }
@@ -300,14 +291,13 @@ if (cmd == "up" || cmd == "down") {
     }
 
     const opt = {verbose};
-    const config = buildConfig(userConfig, opt);
+    const config = buildConfig(opt);
     opt.verbose = opt.verbose || config.verbose;
     psql(opt, additionalArgs, config);
 
 } else if (cmd == "test") {
 
     let list = false;
-    let userConfig;
 
     for (let i = 0; i < options.length; i++) {
         let opt = options[i];
@@ -323,7 +313,7 @@ if (cmd == "up" || cmd == "down") {
                     error("Config file is required. Please provide a valid config file.");
                     return;
                 }
-                userConfig = parts[1];
+                userConfigs.push(parts[1]);
             } else {
                 error("Unknown option: " + opt + ". Please provide a valid option");
                 return;
@@ -332,9 +322,34 @@ if (cmd == "up" || cmd == "down") {
     }
 
     const opt = {list, verbose};
-    const config = buildConfig(userConfig, opt);
+    const config = buildConfig(opt);
     opt.verbose = opt.verbose || config.verbose;
     tests(opt, config);
+
+} else if (cmd == "config") {
+
+    for (let i = 0; i < options.length; i++) {
+        let opt = options[i];
+
+        if (opt.startsWith("-")) {
+            if (opt == "--verbose") {
+                verbose = true;
+            } else if (opt.startsWith("--config")) {
+                let parts = opt.split("=");
+                if (parts.length <= 1) {
+                    error("Config file is required. Please provide a valid config file.");
+                    return;
+                }
+                userConfigs.push(parts[1]);
+            } else {
+                error("Unknown option: " + opt + ". Please provide a valid option");
+                return;
+            }
+        }
+    }
+
+    const config = buildConfig({verbose});
+    console.log(config);
 
 } else {
 

@@ -20,23 +20,25 @@ Usage:
  pgmigrations [command] [switches]
 
 Commands:
-up               Run migrations migrations in order: before, before repeatable, up, repeatable, after. Optional switches: --list, --dry, --full, --dump.
-down             Run only down migrations. Optional switches: --list, --dry, --full, --dump.
-run | exec       Run a command or a script file with psql. Command text or a script file is required as the second argument. Any additional arguments will be passed to a psql command.
-dump | schema    Run pg_dump command with --schema-only --encoding=UTF8 swtiches on (plus schemaDumpAdditionalArgs from the config). Any additional arguments will be passed to pg_dump command.
-psql             Run arbitrary psql command or open psql shell. Any additional arguments will be passed to a psql.
-test             Run database tests.
+up               Run migrations migrations in order: before, before repeatable, up, repeatable, after. Optional switches: --list, --dry, --full, --dump. 
+down             Run only down migrations. Optional switches: --list, --dry, --full, --dump. 
+run | exec       Run a command or a script file with psql. Command text or a script file is required as the second argument. Any additional arguments will be passed to a psql command. 
+dump | schema    Run pg_dump command with --schema-only --encoding=UTF8 swtiches on (plus schemaDumpAdditionalArgs from the config). Any additional arguments will be passed to pg_dump command. 
+psql             Run arbitrary psql command or open psql shell. Any additional arguments will be passed to a psql. 
+test             Run database tests. 
+config           console.log the current configuration. 
 
 Switches:
--h, --help       Show help
---list           List available migrations in this direction (up or down) or list available database tests.
---dry            Run in the migrations dry run mode on database in this direction (up or down). No changes will be made to the database (rollbacks changes).
+-h, --help       Show help 
+--list           List available migrations in this direction (up or down) or list available database tests. 
+--dry            Run in the migrations dry run mode on database in this direction (up or down). No changes will be made to the database (rollbacks changes). 
 --full           Executes all migrations in this direction (up or down). Schema history will be ignored.
 --dump           Dump the SQL for the migration to the console instead of executing it.
 --verbose        Run in verbose mode. This switch applies to all commands. Default is false.
 
-Config file:
---config=[file]  Set the custom config file instead of the default config file (db.js). This switch applies to all commands.
+Configurations files:
+                 ./db.js from the current dir is the default configuration file. It will be ignored if not found.
+--config=[file]  Set the custom config file or multiple files (multiple --config switches). Config files are merged in the order they are provided.
 ```
 
 Examples:
@@ -176,9 +178,11 @@ Examples:
 
 ## Configuration
 
-The tool will try to read the default configuration file from the running location. The default configuration file is `db.js` or it can be set with a command line switch `--config=[file]`.
+The tool will try to read the default configuration file from the running location:  `db.js`. 
 
-Example:
+Additional configuration files can be loaded with a command line switch `--config=[file]`. They will be loaded and merged in the order they appear, while the default configuration `db.js` is always first (if it exists).
+
+Example of the configuration file:
 
 ```js
 module.exports = {
