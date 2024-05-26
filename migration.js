@@ -222,6 +222,7 @@ module.exports = async function(cmd, opt, config) {
         }
         const hasMultipleDirs = migrationDirs.length > 1;
         var parsedDirs = {};
+        var usedNames = {};
         for (let i = 0; i < migrationDirs.length; i++) {
             const migrationDir = migrationDirs[i];
             if (!migrationDir) {
@@ -268,8 +269,19 @@ module.exports = async function(cmd, opt, config) {
                 let prefix = parts[0];
                 let suffix = parts.slice(1).join(config.separatorPrefix);
 
-                let name = (hasMultipleDirs ? (migrationDir + " " + suffix.split(".").slice(0, -1).join(".")) : suffix.split(".").slice(0, -1).join(".")).trim();
-                name = name.replace(/[^a-zA-Z0-9]/g, " ").trim().replace(/\s+/g, " ");
+                let name = suffix.split(".").slice(0, -1).join(".").replace(/[^a-zA-Z0-9]/g, " ").trim().replace(/\s+/g, " ");
+                if (usedNames[name]) {
+                    let dirParts = migrationDir.replace(/[^a-zA-Z0-9]/g, " ").trim().split(" ");
+                    name = name + " (" + dirParts[dirParts.length-1] + ")";
+                    if (usedNames[name]) {
+                        name = name + " (" + dirParts.join("/") + ")";
+                    }
+                    if (usedNames[name]) {
+                        warning(`Migration file ${migrationDir}/${fileName} contains duplicate name ${name}. Skipping...`);
+                        return;
+                    }
+                }
+                usedNames[name] = true;
 
                 let version = null;
                 let type = null;
