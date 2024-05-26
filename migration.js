@@ -523,9 +523,9 @@ from (
         end,
         version,
         name) as rank
-    from schema_history
+    from {schema}.{name}
     ) as t
-where schema_history.name = t.name and schema_history.type = t.type;`)}
+where {schema}.{name}.name = t.name and {schema}.{name}.type = t.type;`)}
 `);
 
         if (opt.dry) {
