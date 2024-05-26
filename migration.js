@@ -251,9 +251,8 @@ module.exports = async function(cmd, opt, config) {
                 let prefix = parts[0];
                 let suffix = parts.slice(1).join(config.separatorPrefix);
 
-                let name = hasMultipleDirs ? 
-                    (migrationDir.replace(/_/g, " ").replace(/\./g, " ") + " " + suffix.split(".").slice(0, -1).join(".").replace(/_/g, " ")).trim() :
-                    suffix.split(".").slice(0, -1).join(".").replace(/_/g, " ");
+                let name = (hasMultipleDirs ? (migrationDir + " " + suffix.split(".").slice(0, -1).join(".")) : suffix.split(".").slice(0, -1).join(".")).trim();
+                name = name.replace(/[^a-zA-Z0-9]/g, " ").trim().replace(/\s+/g, " ");
 
                 let version = null;
                 let type = null;
@@ -354,7 +353,7 @@ module.exports = async function(cmd, opt, config) {
                     }
 
                 } else {
-                    warning(`Migration file ${fileName} does not contain valid prefix. Skipping...`);
+                    warning(`Migration file ${fileName} does not contain valid prefix. Skipping. Valied prefixes are '${config.upPrefix}', '${config.downPrefix}', '${config.repetablePrefix}', '${config.repetableBeforePrefix}', '${config.beforePrefix}', '${config.afterPrefix}' and separator prefix '${config.separatorPrefix}'.`);
                     return;
                 }
 

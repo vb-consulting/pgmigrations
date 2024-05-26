@@ -2,9 +2,9 @@ const fs = require("fs");
 const cp = require("child_process");
 const {info, error, warning} = require("./log.js");
 
-const message = (msg, error) => {
+const message = (msg, err) => {
     msg.split("\n").forEach(line => {
-        if (error) {
+        if (err) {
             error(line);
         } else {
             var lower = line.toLowerCase();
