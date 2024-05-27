@@ -272,11 +272,16 @@ module.exports = async function(cmd, opt, config) {
                 let name = suffix.split(".").slice(0, -1).join(".").replace(/[^a-zA-Z0-9]/g, " ").trim().replace(/\s+/g, " ");
                 if (usedNames[name]) {
                     let dirParts = migrationDir.replace(/[^a-zA-Z0-9]/g, " ").trim().split(" ");
-                    name = name + " (" + dirParts[dirParts.length-1] + ")";
-                    if (usedNames[name]) {
-                        name = name + " (" + dirParts.join("/") + ")";
+                    let nameSet = false;
+                    for (let i = dirParts.length - 1; i >= 0; i--) {
+                        let newName = name + " (" + dirParts.slice(i).join(" ") + ")";
+                        if (!usedNames[newName]) {
+                            name = newName;
+                            nameSet = true;
+                            break;
+                        }
                     }
-                    if (usedNames[name]) {
+                    if (nameSet) {
                         warning(`Migration file ${migrationDir}/${fileName} contains duplicate name ${name}. Skipping...`);
                         return;
                     }

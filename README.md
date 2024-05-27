@@ -317,9 +317,18 @@ The after migration type prefix. The default is `after`.
 
 Separator prefix. The default value is `__`
 
+
+#### migrationExtensions: [".sql"],
+
+An array of file extensions that will be considered as the migration file. The default is `[".sql"]`.
+
+#### recursiveDirs
+
+Search recursively trough migration subdirectories. The default is false.
+
 #### tmpDir
 
-Temporary directory for migration scripts. The Default value is `./tmp`, which is relative to the package directory in the node modules.
+Temporary directory for migration scripts. The Default value is your OS temp dir plus  `./___pgmigrations`.
 
 #### historyTableSchema
 
