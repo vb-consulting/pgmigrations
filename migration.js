@@ -281,9 +281,11 @@ module.exports = async function(cmd, opt, config) {
                             break;
                         }
                     }
-                    if (nameSet) {
-                        warning(`Migration file ${migrationDir}/${fileName} contains duplicate name ${name}. Skipping...`);
-                        return;
+                    if (!nameSet) {
+                        let count = 1;
+                        while(usedNames[name]) {
+                            name = name + ` (${count++})`;
+                        }
                     }
                 }
                 usedNames[name] = true;
