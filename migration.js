@@ -294,7 +294,7 @@ module.exports = async function(cmd, opt, config) {
 
                 const content = fs.readFileSync(filePath).toString();
                 const hash = config.hashFunction(content);
-                const script = hasMultipleDirs ? (migrationDir + "/" + fileName).replace(/\\/g, "/") : fileName;
+                const script = (hasMultipleDirs ? (migrationDir + "/" + fileName).replace(/\\/g, "/") : fileName).replace(/\/+/g, "/");
 
                 let pushTo = null;
 
