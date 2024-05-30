@@ -22,6 +22,7 @@ Usage:
 Commands:
 up               Run migrations migrations in order: before, before repeatable, up, repeatable, after. Optional switches: --list, --dry, --full, --dump. 
 down             Run only down migrations. Optional switches: --list, --dry, --full, --dump. 
+history          console.log the current migration schema history.
 run | exec       Run a command or a script file with psql. Command text or a script file is required as the second argument. Any additional arguments will be passed to a psql command. 
 dump | schema    Run pg_dump command with --schema-only --encoding=UTF8 swtiches on (plus schemaDumpAdditionalArgs from the config). Any additional arguments will be passed to pg_dump command. 
 psql             Run arbitrary psql command or open psql shell. Any additional arguments will be passed to a psql. 

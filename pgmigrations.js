@@ -5,7 +5,7 @@ const path = require("path");
 const mainConfig = require("./config.js");
 const { error, warning, info, sections } = require("./log.js");
 const { command: commandRunner, schema, psql } = require("./runner.js");
-const migrate = require("./migration.js");
+const {migrate, history} = require("./migration.js");
 const tests = require("./tests.js");
 
 var defaultconfigFile = "./db.js";
@@ -117,6 +117,7 @@ if (!cmd || cmd === 'help' || cmd === '-h' || cmd === '--help') {
     sections([  
         {key: "up", value: "Run migrations migrations in order: before, before repeatable, up, repeatable, after. Optional switches: --list, --dry, --full, --dump."},
         {key: "down", value: "Run only down migrations. Optional switches: --list, --dry, --full, --dump."},
+        {key: "history", value: "console.log the current migration schema history."},
         {key: "run | exec", value: "Run a command or a script file with psql. Command text or a script file is required as the second argument. Any additional arguments will be passed to a psql command."},
         {key: "dump | schema", value: "Run pg_dump command with --schema-only --encoding=UTF8 swtiches on (plus schemaDumpAdditionalArgs from the config). Any additional arguments will be passed to pg_dump command."},
         {key: "psql", value: "Run arbitrary psql command or open psql shell. Any additional arguments will be passed to a psql."},
@@ -350,6 +351,31 @@ if (cmd == "up" || cmd == "down") {
 
     const config = buildConfig({verbose});
     console.log(config);
+
+} else if (cmd == "history") {
+
+    for (let i = 0; i < options.length; i++) {
+        let opt = options[i];
+
+        if (opt.startsWith("-")) {
+            if (opt == "--verbose") {
+                verbose = true;
+            } else if (opt.startsWith("--config")) {
+                let parts = opt.split("=");
+                if (parts.length <= 1) {
+                    error("Config file is required. Please provide a valid config file.");
+                    return;
+                }
+                userConfigs.push(parts[1]);
+            } else {
+                error("Unknown option: " + opt + ". Please provide a valid option");
+                return;
+            }
+        }
+    }
+
+    const config = buildConfig({verbose});
+    history({verbose}, config);
 
 } else {
 
