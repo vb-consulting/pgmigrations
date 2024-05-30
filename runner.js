@@ -3,6 +3,9 @@ const cp = require("child_process");
 const {info, error, warning} = require("./log.js");
 
 const message = (msg, err) => {
+    if (!msg || msg == "DO") {
+        return;
+    }
     msg.split("\n").forEach(line => {
         if (err) {
             error(line);
@@ -124,7 +127,8 @@ function run(options) {
                     while (index !== -1) {
                         const msg = stderrBuffer.slice(0, index).trim();
                         if (msg && !options.muted) {
-                            message(msg, true);
+                            //message(msg, true);
+                            message(msg);
                         }
                         stderrBuffer = stderrBuffer.slice(index + prefix.length);
                         index = stderrBuffer.indexOf(prefix);
@@ -149,7 +153,8 @@ function run(options) {
                     if (stderrBuffer) {
                         const msg = stderrBuffer.trim();
                         if (msg) {
-                            message(msg, true);
+                            //message(msg, true);
+                            message(msg);
                         }
                     }
                     resolve(code);
