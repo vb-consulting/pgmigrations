@@ -339,6 +339,10 @@ Schema name for the history table. If this schema doesn't exist, it will be crea
 
 Name of the history table. If this table doesn't exist, it will be created. The default is `schema_history`.
 
+#### skipPattern
+
+Regex pattern to skip files.
+
 #### hashFunction
 
 Default hash function used for hashing the content. The default value is the `SHA1` function:

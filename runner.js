@@ -2,24 +2,25 @@ const fs = require("fs");
 const cp = require("child_process");
 const {info, error, warning} = require("./log.js");
 
-const message = (msg, err) => {
+const message = (msg, options) => {
     if (!msg || msg == "DO") {
         return;
     }
-    msg.split("\n").forEach(line => {
-        if (err) {
+    var lines = msg.split("\n");
+    //var fromError = -1;
+    for (let i = 0; i < lines.length; i++) {
+        var line = lines[i];
+        var lower = line.toLowerCase();
+        if (lower.indexOf("error:") > -1 || lower.indexOf("fatal:") > -1 || lower.indexOf("panic:") > -1) {
             error(line);
+            options.hasError = true;
+            fromError = 0;
+        } else if (lower.indexOf("warning:") > -1) {
+            warning(line);
         } else {
-            var lower = line.toLowerCase();
-            if (lower.indexOf("error:") > -1 || lower.indexOf("fatal:") > -1 || lower.indexOf("panic:") > -1) {
-                error(line);
-            } else if (lower.indexOf("warning:") > -1) {
-                warning(line);
-            } else {
-                info(line);
-            }
+            info(line);
         }
-    });
+    }
 };
 
 function run(options) {
@@ -99,7 +100,7 @@ function run(options) {
         if (options.config.password) {
             spawnOptions.env = {PGPASSWORD: options.config.password};
         }
-
+        options.hasError = false;
         const child = cp.spawn(cmd, args, spawnOptions);
         if (!options.inherit) {
             child.stdout.on("data", data => {
@@ -112,7 +113,7 @@ function run(options) {
                     while (index !== -1) {
                         const msg = stdoutBuffer.slice(0, index).trim();
                         if (msg && !options.muted) {
-                            message(msg);
+                            message(msg, options);
                         }
                         stdoutBuffer = stdoutBuffer.slice(index + prefix.length);
                         index = stdoutBuffer.indexOf(prefix);
@@ -127,8 +128,7 @@ function run(options) {
                     while (index !== -1) {
                         const msg = stderrBuffer.slice(0, index).trim();
                         if (msg && !options.muted) {
-                            //message(msg, true);
-                            message(msg);
+                            message(msg, options);
                         }
                         stderrBuffer = stderrBuffer.slice(index + prefix.length);
                         index = stderrBuffer.indexOf(prefix);
@@ -147,17 +147,24 @@ function run(options) {
                     if (stdoutBuffer) {
                         const msg = stdoutBuffer.trim();
                         if (msg) {
-                            message(msg);
+                            message(msg, options);
                         }
                     }
                     if (stderrBuffer) {
                         const msg = stderrBuffer.trim();
-                        if (msg) {
-                            //message(msg, true);
-                            message(msg);
+                        if (msg && !options.skipErrorDetails) {
+                            message(msg, options);
                         }
                     }
-                    resolve(code);
+                    if (code !== 0) {
+                        reject(code);
+                    } else {
+                        if (options.hasError) {
+                            reject(code);
+                        } else {
+                            resolve(code);
+                        }
+                    }
                 } else {
                     resolve({
                         stdout: stdoutBuffer.trim(),

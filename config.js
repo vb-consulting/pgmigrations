@@ -38,6 +38,8 @@ module.exports = {
     historyTableName: "schema_history",
     historyTableSchema: "public",
 
+    skipPattern: "scrap",
+
     hashFunction: function(data) {
         const hash = crypto.createHash('sha1');
         hash.update(data);
