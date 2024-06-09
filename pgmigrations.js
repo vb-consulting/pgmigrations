@@ -12,7 +12,6 @@ var defaultconfigFile = "./db.js";
 
 var args = process.argv.slice(2);
 var cmd = args[0];
-
 var userConfigs = [defaultconfigFile];
 
 function buildConfig(opt) {

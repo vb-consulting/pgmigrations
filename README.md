@@ -343,6 +343,10 @@ Name of the history table. If this table doesn't exist, it will be created. The 
 
 Regex pattern to skip files.
 
+#### useProceduralScript
+
+Set to true to build a migration script with procedural extensions (PL/pgSQL script). Set to false to build a normal SQL transactional script. Default is false.
+
 #### hashFunction
 
 Default hash function used for hashing the content. The default value is the `SHA1` function:

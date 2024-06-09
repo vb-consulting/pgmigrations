@@ -37,8 +37,8 @@ module.exports = {
     tmpDir: path.join(os.tmpdir(), "___pgmigrations"),
     historyTableName: "schema_history",
     historyTableSchema: "public",
-
     skipPattern: "scrap",
+    useProceduralScript: false,
 
     hashFunction: function(data) {
         const hash = crypto.createHash('sha1');
