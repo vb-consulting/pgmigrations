@@ -600,23 +600,30 @@ $migration_${ident}$;`);
                 });
                 if (result != 0) {
                     error("Migration failed with exit code " + result + ". Changes have been rolled back.");
-                    return;
+                    if (tmpFile && fs.existsSync(tmpFile)) {
+                        console.info("Migration file: " + tmpFile);
+                    }
+                    process.exit(1);
                 } else {
                     console.info("Migration completed successfully.");
                 }
 
             } catch (e) {
                 error("Migration failed. Changes have been rolled back.");
+                if (tmpFile && fs.existsSync(tmpFile)) {
+                    console.info("Migration file: " + tmpFile);
+                }
+                process.exit(1);
             }
         }
     
         } catch (e) {
             error(e);
             //error("Migration failed. Changes have been rolled back.");
-        }
-
-        if (tmpFile && fs.existsSync(tmpFile)) {
-            console.info("Migration file: " + tmpFile);
+            if (tmpFile && fs.existsSync(tmpFile)) {
+                console.info("Migration file: " + tmpFile);
+            }
+            process.exit(1);
         }
     }
 }
