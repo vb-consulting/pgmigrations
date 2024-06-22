@@ -399,6 +399,12 @@ Default: `test`
 
 Test function or procedure comment contains this text (case insensitive) or `null` for all function or procedure names without parameters.
 
+#### testAutomaticallyRollbackFunctionTests
+
+Default: `false`.
+
+When the test routine is the Function type, automatically begin and rollback transaction.
+
 ## Contributing
 
 Contributions from the community are welcomed.

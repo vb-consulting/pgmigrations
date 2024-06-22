@@ -64,7 +64,12 @@ module.exports = async function(opt, config) {
     await Promise.all(tests.map(async (test) => {
         var cmd;
         if (test.type == "FUNCTION") {
-            cmd = "select " + test.schema + "." + test.name + "();";
+            if (config.testAutomaticallyRollbackFunctionTests) {
+                cmd = "begin; select " + test.schema + "." + test.name + "(); rollback;";
+            } else {
+                cmd = "select " + test.schema + "." + test.name + "();";
+            }
+            
         } else if (test.type == "PROCEDURE") {
             cmd = "call " + test.schema + "." + test.name + "();";
         } else {

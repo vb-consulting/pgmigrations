@@ -51,4 +51,5 @@ module.exports = {
     testFunctionsSchemaContains: null,
     testFunctionsNameContains: null,
     testFunctionsCommentContains: "test",
+    testAutomaticallyRollbackFunctionTests: false
 }
