@@ -39,6 +39,8 @@ module.exports = {
     historyTableSchema: "public",
     skipPattern: "scrap",
     useProceduralScript: false,
+    warnOnInvalidPrefix: false,
+    parseScriptTags: true,
 
     hashFunction: function(data) {
         const hash = crypto.createHash('sha1');

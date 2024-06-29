@@ -68,6 +68,27 @@ function formatByName(str, obj) {
     });
 };
 
+const importTag = "# import";
+
+function parseContent(filePath, config, opt) {
+    if (!config.parseScriptTags) {
+        return fs.readFileSync(filePath).toString();
+    }
+
+    const content = fs.readFileSync(filePath).toString();
+    const lines = content.split("\n");
+    const parsedLines = lines.map(line => {
+        var importIndexOf = line.indexOf(importTag);
+        if (importIndexOf != -1) {
+            const filename = line.substring(importIndexOf + importTag.length).trim();
+            return `${line}\n${fs.readFileSync(filename, "utf8")}`;
+        } else {
+            return line;
+        }
+    });
+    return parsedLines.join("\n");
+}
+
 module.exports = {
     history: async function(opt, config) {
         var schemaQuery = str => formatByName(str, {schema: config.historyTableSchema, name: config.historyTableName});
@@ -313,7 +334,8 @@ module.exports = {
                     let type = null;
                     const meta = {};
     
-                    const content = fs.readFileSync(filePath).toString();
+                    //const content = await parseContent(filePath, config, opt);
+                    const content = parseContent(filePath, config, opt);
                     const hash = config.hashFunction(content);
                     const script = ((hasMultipleDirs ? (migrationDir + "/" + fileName).replace(/\\/g, "/") : fileName).replace(/\/+/g, "/")).replace('./', "");
     
@@ -408,7 +430,9 @@ module.exports = {
                         }
     
                     } else {
-                        warning(`Migration file ${fileName} does not contain valid prefix. Skipping. Valied prefixes are '${config.upPrefix}', '${config.downPrefix}', '${config.repetablePrefix}', '${config.repetableBeforePrefix}', '${config.beforePrefix}', '${config.afterPrefix}' and separator prefix '${config.separatorPrefix}'.`);
+                        if (config.warnOnInvalidPrefix) {
+                            warning(`Migration file ${fileName} does not contain valid prefix. Skipping. Valied prefixes are '${config.upPrefix}', '${config.downPrefix}', '${config.repetablePrefix}', '${config.repetableBeforePrefix}', '${config.beforePrefix}', '${config.afterPrefix}' and separator prefix '${config.separatorPrefix}'.`);
+                        }
                         return;
                     }
     

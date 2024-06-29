@@ -367,6 +367,50 @@ Default sort function used for sorting migration names. The default value is `(a
 
 Default sort function used for sorting migration versions. The default value is `(a, b) => a.localeCompare(b, "en", {numeric: true})`.
 
+
+#### warnOnInvalidPrefix: false
+
+Display warning if some migration file with the migration extension (`.sql`) doesn't have a valid prefix. This may be just some script file that can be referenced with `# script` tag. The default is false.
+
+#### parseScriptTags
+
+Parses migration scripts for special tags to be executed in the build time.
+
+For now, the only tag that is implemented is `# import <file>`.
+
+When parses finds `# import <file>` tag, it will insert the content of that file in the next lines. This can be anywhere in the migration script. For example, you would normally put this in a comment like this:
+
+```sql
+-- # import ./test.sql
+```
+
+Build will produce:
+
+```sql
+-- # import ./test.sql
+test.sql content
+```
+
+But if you do this:
+
+```sql
+/*
+# import ./test.sql
+*/
+```
+
+
+Build will produce:
+
+```sql
+/*
+# import ./test.sql
+test.sql content
+*/
+```
+
+The default is true.
+
 ### Testing
 
 Test command will run tests on PostgreSQL functions and procedures: 
