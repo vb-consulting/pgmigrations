@@ -425,23 +425,29 @@ To assert a failed test:
 - Return false: `return false;`
 - Return text that starts with "not ok": `return 'not ok: failed message'`
 
-#### testFunctionsSchemaContains
+#### testFunctionsSchemaSimilarTo
+
+Default: `%test%`
+
+Test function or procedure schema that is SIMILAR TO ([see ref](https://www.postgresql.org/docs/current/functions-matching.html#FUNCTIONS-SIMILARTO-REGEXP)) this text value or `null` for all non-system schemas.
+
+The test list returns parameterless functions and procedures that match these schemas.
+
+#### testFunctionsNameSimilarTo
 
 Default: `null`
 
-Test function or procedure schema contains this text (case insensitive) or `null` for all non-system schemas.
+Test function or procedure name that is SIMILAR TO ([see ref](https://www.postgresql.org/docs/current/functions-matching.html#FUNCTIONS-SIMILARTO-REGEXP)) this text (case insensitive) or `null` for all function or procedure names without parameters.
 
-#### testFunctionsNameContains
+The test list returns parameterless functions and procedures that match these names.
 
-Default: `null`
-
-Test function or procedure name contains this text (case insensitive) or `null` for all function or procedure names without parameters.
-
-#### testFunctionsCommentContains
+#### testFunctionsCommentSimilarTo
 
 Default: `test`
 
-Test function or procedure comment contains this text (case insensitive) or `null` for all function or procedure names without parameters.
+Test function or procedure comment that is SIMILAR TO ([see ref](https://www.postgresql.org/docs/current/functions-matching.html#FUNCTIONS-SIMILARTO-REGEXP)) this text (case insensitive) or `null` for all function or procedure names without parameters.
+
+The test list returns parameterless functions and procedures that match these comments.
 
 #### testAutomaticallyRollbackFunctionTests
 

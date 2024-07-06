@@ -12,39 +12,45 @@ from (
     from 
         information_schema.routines r
         left join information_schema.parameters p on r.specific_name = p.specific_name and r.specific_schema = p.specific_schema
-        join pg_catalog.pg_proc proc on r.specific_name = proc.proname || '_' || proc.oid
+        left join pg_catalog.pg_proc proc on r.specific_name = proc.proname || '_' || proc.oid
         left join pg_catalog.pg_description des on proc.oid = des.objoid
     where
         routine_schema not like 'pg_%'
         and routine_schema <> 'information_schema'
         and not lower(r.external_language) = any(array['c', 'internal'])
         and coalesce(r.type_udt_name, '') <> 'trigger'
-        and p.specific_name is null
+        and (
+            ({testFunctionsSchemaSimilarTo} is null or routine_schema like {testFunctionsSchemaSimilarTo})
+            and ({testFunctionsNameSimilarTo} is null or routine_name like {testFunctionsNameSimilarTo})
+            and ({testFunctionsCommentSimilarTo} is null or des.description like {testFunctionsCommentSimilarTo})
+        )
+    group by
+        quote_ident(routine_schema), 
+        quote_ident(routine_name), 
+        routine_type,
+        des.description
+    having count(p.*) = 0
 ) sub;`;
 
+function formatStrByName(str, obj) {
+    return str.replace(/{([^{}]+)}/g, function(match, key) {
+        var val = obj[key];
+        if (val === undefined) {
+            return match;
+        }
+        if (val == null) {
+            return "NULL";
+        }
+        return "'" + val + "'";
+    });
+};
 
 module.exports = async function(opt, config) {
-    var tests = [];
-
-    var schemaContains = config.testFunctionsSchemaContains ? config.testFunctionsSchemaContains.toLowerCase() : null;
-    var nameContains = config.testFunctionsNameContains ? config.testFunctionsNameContains.toLowerCase() : null;
-    var commentContains = config.testFunctionsCommentContains ? config.testFunctionsCommentContains.toLowerCase() : null;
-
-    for (const test of JSON.parse(await query(testListQuery, opt, config))) {
-        if (!schemaContains && !nameContains && !commentContains) {
-            tests.push(test);
-        } else {
-            if (schemaContains && test.schema && test.schema.toLowerCase().indexOf(schemaContains) > -1) {
-                tests.push(test);
-            }
-            if (config.nameContains && test.name && test.name.toLowerCase().indexOf(config.nameContains) > -1) {
-                tests.push(test);
-            }
-            if (commentContains && test.comment && test.comment.toLowerCase().indexOf(commentContains) > -1) {
-                tests.push(test);
-            }
-        }
-    }
+    var tests = JSON.parse(await query(formatStrByName(testListQuery, {
+        testFunctionsSchemaSimilarTo: config.testFunctionsSchemaSimilarTo,
+        testFunctionsNameSimilarTo: config.testFunctionsNameSimilarTo,
+        testFunctionsCommentSimilarTo: config.testFunctionsCommentSimilarTo
+    }), opt, config));
 
     if (!tests.length) {
         warning("Nothing to test.");
