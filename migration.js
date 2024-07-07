@@ -89,8 +89,32 @@ function parseContent(filePath, config, opt) {
     return parsedLines.join("\n");
 }
 
+function validateConfig(config) {
+    var mandatory = [
+        "upPrefix","downPrefix","repetablePrefix","repetableBeforePrefix",
+        "beforePrefix","afterPrefix","separatorPrefix",
+        "historyTableName","historyTableSchema",
+        "tmpDir","hashFunction"
+    ];
+
+    for (let i = 0; i < mandatory.length; i++) {
+        const key = mandatory[i];
+        if (!config[key]) {
+            error(`Config key ${key} is required. Please provide a valid config key.`);
+            return false;
+        }
+    }
+    return true;
+}
+
+
 module.exports = {
     history: async function(opt, config) {
+
+        if (!validateConfig(config)) {
+            return;
+        }
+
         var schemaQuery = str => formatByName(str, {schema: config.historyTableSchema, name: config.historyTableName});
 
         var exists = (await query(schemaQuery(tableExistsQuery), opt, config)) == 't';
@@ -101,19 +125,10 @@ module.exports = {
         }
     },
     migrate: async function(cmd, opt, config) {
-        var mandatory = [
-            "upPrefix","downPrefix","repetablePrefix","repetableBeforePrefix",
-            "beforePrefix","afterPrefix","separatorPrefix",
-            "historyTableName","historyTableSchema",
-            "tmpDir","hashFunction"
-        ];
-        for (let i = 0; i < mandatory.length; i++) {
-            const key = mandatory[i];
-            if (!config[key]) {
-                error(`Config key ${key} is required. Please provide a valid config key.`);
-                return;
-            }
+        if (!validateConfig(config)) {
+            return;
         }
+
         if (Array.isArray(config.migrationDir)) {
             for (let i = 0; i < config.migrationDir.length; i++) {
                 const migrationDir = config.migrationDir[i];
@@ -442,14 +457,14 @@ module.exports = {
                 });
             }
     
-            afterList.sort((a, b) => config.sortFunction(a.name, b.name));
-            beforeList.sort((a, b) => config.sortFunction(a.name, b.name));
+            afterList.sort((a, b) => config.sortFunction(a, b, config));
+            beforeList.sort((a, b) => config.sortFunction(a, b, config));
     
-            repetableList.sort((a, b) => config.sortFunction(a.name, b.name));
-            repetableBeforeList.sort((a, b) => config.sortFunction(a.name, b.name));
+            repetableList.sort((a, b) => config.sortFunction(a, b, config));
+            repetableBeforeList.sort((a, b) => config.sortFunction(a, b, config));
     
-            upList.sort((a, b) => config.versionSortFunction(a.version, b.version));
-            downList.sort((a, b) => config.versionSortFunction(b.version, a.version));
+            upList.sort((a, b) => config.versionSortFunction(a, b, config));
+            downList.sort((a, b) => config.versionSortFunction(b, a, config));
     
             if (opt.list) {
                 if (isUp) {

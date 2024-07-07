@@ -333,7 +333,7 @@ Temporary directory for migration scripts. The Default value is your OS temp dir
 
 #### historyTableSchema
 
-Schema name for the history table. If this schema doesn't exist, it will be created. The default is `public`.
+Schema name for the history table. If this schema doesn't exist, it will be created. The default is `pgmigrations`.
 
 #### historyTableName
 
@@ -359,16 +359,22 @@ function(data) {
 }
 ```
 
+#### sortByPath
+
+Default: `true`.
+
+Sorts non-versioned migrations by path and then by name for migrations in multiple directories.
+
 #### sortFunction
 
-Default sort function used for sorting migration names. The default value is `(a, b) => a.localeCompare(b, "en")`.
+Default sort function used for sorting migration names. The default value is `sortFunction: (a, b, config) => config.sortByPath ? a.script.localeCompare(b.script, "en") : a.name.localeCompare(b.name, "en")`.
 
 #### versionSortFunction
 
-Default sort function used for sorting migration versions. The default value is `(a, b) => a.localeCompare(b, "en", {numeric: true})`.
+Default sort function used for sorting migration versions. The default value is `versionSortFunction: (a, b, config) => a.version.localeCompare(b.version, "en", {numeric: true})`.
 
 
-#### warnOnInvalidPrefix: false
+#### warnOnInvalidPrefix: true
 
 Display warning if some migration file with the migration extension (`.sql`) doesn't have a valid prefix. This may be just some script file that can be referenced with `# script` tag. The default is false.
 

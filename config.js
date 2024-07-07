@@ -36,10 +36,10 @@ module.exports = {
     keepMigrationDirHistory: false,
     tmpDir: path.join(os.tmpdir(), "___pgmigrations"),
     historyTableName: "schema_history",
-    historyTableSchema: "public",
+    historyTableSchema: "pgmigrations",
     skipPattern: "scrap",
     useProceduralScript: false,
-    warnOnInvalidPrefix: false,
+    warnOnInvalidPrefix: true,
     parseScriptTags: true,
 
     hashFunction: function(data) {
@@ -47,8 +47,9 @@ module.exports = {
         hash.update(data);
         return hash.digest('hex');
     },
-    sortFunction: (a, b) => a.localeCompare(b, "en"),
-    versionSortFunction: (a, b) => a.localeCompare(b, "en", {numeric: true}),
+    sortByPath: true,
+    sortFunction: (a, b, config) => config.sortByPath ? a.script.localeCompare(b.script, "en") : a.name.localeCompare(b.name, "en"),
+    versionSortFunction: (a, b, config) => a.version.localeCompare(b.version, "en", {numeric: true}),
 
     testFunctionsSchemaSimilarTo: "test",
     testFunctionsNameSimilarTo: null,
