@@ -198,7 +198,7 @@ module.exports = {
             var versionDict = {};
             history.forEach(h => {
                 if (h.type == types.repetable || h.type == types.repetableBefore) {
-                    repetableHashes[h.hash + ";" + h.name] = h;
+                    repetableHashes[h.hash + ";" + h.script] = h;
                 }
                 if (h.type == types.up) {
                     versionDict[h.version] = h;
@@ -419,7 +419,7 @@ module.exports = {
                         if (isUp) {
                             type = types.repetable;
     
-                            if (repetableHashes[hash + ";" + name]) {
+                            if (repetableHashes[hash + ";" + script]) {
                                 return;
                             }
                             pushTo = repetableList;
@@ -427,8 +427,10 @@ module.exports = {
                     } else if (prefix == config.repetableBeforePrefix || repetableBeforeDirsHash[migrationDir]) {
                         if (isUp) {
                             type = types.repetableBefore;
-                            if (repetableHashes[hash + ";" + name]) {
-                                pushTo = null;
+
+                            if (repetableHashes[hash + ";" + script]) {
+                                //pushTo = null;
+                                return;
                             }
                             pushTo = repetableBeforeList;
                         }

@@ -272,19 +272,19 @@ List of directories for versioned DOWN migrations. Prefix and version number is 
 
 #### repetableDirs
 
-List of directories for versioned REPETABLE migrations. Prefix and version number is mandatory.
+List of directories for versioned REPETABLE migrations. Prefix is mandatory.
 
 #### repetableBeforeDirs
 
-List of directories for versioned REPETABLE BEFORE migrations. Prefix and version number is mandatory.
+List of directories for versioned REPETABLE BEFORE migrations. Prefix is mandatory.
 
 #### beforeDirs
 
-List of directories for versioned BEFORE migrations. Prefix and version number is mandatory.
+List of directories for versioned BEFORE migrations. Prefix is mandatory.
 
 #### afterDirs
 
-List of directories for versioned AFTER migrations. Prefix and version number is mandatory.
+List of directories for versioned AFTER migrations. Prefix is mandatory.
 
 #### keepMigrationDirHistory
 

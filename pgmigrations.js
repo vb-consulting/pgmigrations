@@ -10,7 +10,7 @@ const tests = require("./tests.js");
 
 var defaultconfigFile = "./db.js";
 
-var args = process.argv.slice(2);
+var args = ["up", "--list"]; //process.argv.slice(2);
 var cmd = args[0];
 var userConfigs = [defaultconfigFile];
 
