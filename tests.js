@@ -34,7 +34,7 @@ from (
 
 function formatStrByName(str, obj) {
     return str.replace(/{([^{}]+)}/g, function(match, key) {
-        var val = obj[key];
+        let val = obj[key];
         if (val === undefined) {
             return match;
         }
@@ -46,7 +46,7 @@ function formatStrByName(str, obj) {
 };
 
 module.exports = async function(opt, config) {
-    var tests = JSON.parse(await query(formatStrByName(testListQuery, {
+    let tests = JSON.parse(await query(formatStrByName(testListQuery, {
         testFunctionsSchemaSimilarTo: config.testFunctionsSchemaSimilarTo,
         testFunctionsNameSimilarTo: config.testFunctionsNameSimilarTo,
         testFunctionsCommentSimilarTo: config.testFunctionsCommentSimilarTo
@@ -63,12 +63,12 @@ module.exports = async function(opt, config) {
         return;
     }
 
-    var failedCount = 0;
-    var passedCount = 0;
-    var label = "Total " + tests.length.toString() + " tests";
+    let failedCount = 0;
+    let passedCount = 0;
+    let label = "Total " + tests.length.toString() + " tests";
     console.time(label);
     await Promise.all(tests.map(async (test) => {
-        var cmd;
+        let cmd;
         if (test.type == "FUNCTION") {
             if (config.testAutomaticallyRollbackFunctionTests) {
                 cmd = "begin; select " + test.schema + "." + test.name + "(); rollback;";
@@ -82,10 +82,15 @@ module.exports = async function(opt, config) {
             return;
         }
         
-        var testInfo = `${test.schema == "public" ? "" : test.schema + "."}${test.name}${test.comment ? " (" + test.comment.replace(/[\r\n\t]/g, " ").trim() + ")"  : ""}`;
-        var result = await command(cmd, opt, ["--tuples-only", "--no-align"], config, true, true); 
+        let testInfo = `${test.schema == "public" ? "" : test.schema + "."}${test.name}${test.comment ? " (" + test.comment.replace(/[\r\n\t]/g, " ").trim() + ")"  : ""}`;
+        let result = await command(cmd, opt, ["--tuples-only", "--no-align"], config, true, true); 
         
-        if (result.code != 0 || result.stderr || result.stdout == "f" || result.stdout.toLowerCase().startsWith("not ok")) {
+        let lower = result.stderr ? result.stderr.toLowerCase() : "";
+        if (result.code != 0 || result.stdout == "f" || result.stdout.toLowerCase().startsWith("not ok")) {
+            failed(testInfo);
+            error(result.stderr || result.stdout);
+            failedCount++;
+        } else if (lower.indexOf("error:") > -1 || lower.indexOf("fatal:") > -1 || lower.indexOf("panic:") > -1) {
             failed(testInfo);
             error(result.stderr || result.stdout);
             failedCount++;
