@@ -270,6 +270,7 @@ module.exports = {
             const hasMultipleDirs = migrationDirs.length > 1;
             var parsedDirs = {};
             var usedNames = {};
+            migrationDirs.sort();
             for (let i = 0; i < migrationDirs.length; i++) {
                 const migrationDir = migrationDirs[i];
                 if (!migrationDir) {
