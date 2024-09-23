@@ -2,27 +2,6 @@ const fs = require("fs");
 const cp = require("child_process");
 const {info, error, warning} = require("./log.js");
 
-const message = (msg, options) => {
-    if (!msg || msg == "DO") {
-        return;
-    }
-    var lines = msg.split("\n");
-    //var fromError = -1;
-    for (let i = 0; i < lines.length; i++) {
-        var line = lines[i];
-        var lower = line.toLowerCase();
-        if (lower.indexOf("error:") > -1 || lower.indexOf("fatal:") > -1 || lower.indexOf("panic:") > -1) {
-            error(line);
-            options.hasError = true;
-            fromError = 0;
-        } else if (lower.indexOf("warning:") > -1) {
-            warning(line);
-        } else {
-            info(line);
-        }
-    }
-};
-
 function run(options) {
     var args = [];
 
@@ -88,6 +67,29 @@ function run(options) {
     }
 
     var prefix = cmd + ":";
+    var errorCount = 0;
+
+    const message = (msg) => {
+        if (!msg || msg == "DO") {
+            return;
+        }
+        var lines = msg.split("\n");
+        //var fromError = -1;
+        for (let i = 0; i < lines.length; i++) {
+            var line = lines[i];
+            var lower = line.toLowerCase();
+            if (lower.indexOf("error:") > -1 || lower.indexOf("fatal:") > -1 || lower.indexOf("panic:") > -1) {
+                error(line);
+                errorCount++;
+                options.hasError = true;
+                fromError = 0;
+            } else if (lower.indexOf("warning:") > -1) {
+                warning(line);
+            } else {
+                info(line);
+            }
+        }
+    };
 
     return new Promise((resolve, reject) => {
         let stdoutBuffer = "";
@@ -112,8 +114,8 @@ function run(options) {
                     let index = stdoutBuffer.indexOf(prefix);
                     while (index !== -1) {
                         const msg = stdoutBuffer.slice(0, index).trim();
-                        if (msg && !options.muted) {
-                            message(msg, options);
+                        if (msg && !options.muted && (!options.config.migrationErrorTreshold || errorCount < options.config.migrationErrorTreshold)) {
+                            message(msg);
                         }
                         stdoutBuffer = stdoutBuffer.slice(index + prefix.length);
                         index = stdoutBuffer.indexOf(prefix);
@@ -127,12 +129,15 @@ function run(options) {
                     let index = stderrBuffer.indexOf(prefix);
                     while (index !== -1) {
                         const msg = stderrBuffer.slice(0, index).trim();
-                        if (msg && !options.muted) {
-                            message(msg, options);
+                        if (msg && !options.muted && (!options.config.migrationErrorTreshold || errorCount < options.config.migrationErrorTreshold)) {
+                            message(msg);
                         }
                         stderrBuffer = stderrBuffer.slice(index + prefix.length);
                         index = stderrBuffer.indexOf(prefix);
                     }
+                    // if (errorCount > 3) {
+                    //     child.kill(); // kill the process if there are more than one errors
+                    // }
                 }
             });
             child.on("exit", code => {
@@ -146,14 +151,14 @@ function run(options) {
                 } else if (!options.muted) {
                     if (stdoutBuffer) {
                         const msg = stdoutBuffer.trim();
-                        if (msg) {
-                            message(msg, options);
+                        if (msg && (!options.config.migrationErrorTreshold || errorCount < options.config.migrationErrorTreshold)) {
+                            message(msg);
                         }
                     }
                     if (stderrBuffer) {
                         const msg = stderrBuffer.trim();
-                        if (msg && !options.skipErrorDetails) {
-                            message(msg, options);
+                        if (msg && !options.skipErrorDetails && (!options.config.migrationErrorTreshold || errorCount < options.config.migrationErrorTreshold)) {
+                            message(msg);
                         }
                     }
                     if (code !== 0) {

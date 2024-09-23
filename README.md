@@ -417,6 +417,10 @@ test.sql content
 
 The default is true.
 
+#### migrationErrorTreshold
+
+During the migration, don't print anything after this record count to increase redability of console output. Default is 1. 
+
 ### Testing
 
 Test command will run tests on PostgreSQL functions and procedures: 
