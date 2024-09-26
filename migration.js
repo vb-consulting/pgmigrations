@@ -16,7 +16,7 @@ const names = {
     "R": "REPEATABLE",
     "U": "VERSION UP",
     "D": "VERSION DOWN",
-    "P": "REPEATABLE BEFORE VERSION UP",
+    "P": "REPEATABLE BEFORE",
     "B": "BEFORE MIGRATIONS",
     "A": "AFTER MIGRATIONS",
 };
