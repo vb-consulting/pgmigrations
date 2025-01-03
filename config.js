@@ -31,6 +31,7 @@ module.exports = {
     beforePrefix: "before",
     afterPrefix: "after",
     separatorPrefix: "__",
+    finalizePrefix: "TEST",
     migrationExtensions: [".sql"],
     recursiveDirs: false,
     keepMigrationDirHistory: false,
@@ -41,6 +42,7 @@ module.exports = {
     useProceduralScript: false,
     warnOnInvalidPrefix: true,
     parseScriptTags: true,
+    parseEnvVars: true,
     migrationErrorTreshold: 1,
 
     hashFunction: function(data) {

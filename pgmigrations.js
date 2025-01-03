@@ -14,6 +14,8 @@ var args = process.argv.slice(2);
 var cmd = args[0];
 var userConfigs = [defaultconfigFile];
 
+const envRegex = /\$\{([^}]+)\}/g;
+
 function buildConfig(opt) {
     for (var i = 0; i < userConfigs.length; i++) {
         var configFile = path.join(process.cwd(), userConfigs[i]);
@@ -94,6 +96,17 @@ function buildConfig(opt) {
             }
         } else {
             warning("Env file not found: " + envFile + ". Please provide a valid env file or don't use the env file.. Skipping env file import.");
+        }
+    } else {
+        require('dotenv').config();
+        for (var key of Object.keys(mainConfig)) {
+            var value = mainConfig[key];
+            if (typeof value === "string") {
+                value = value.replace(envRegex, function(match, regkey) {
+                    return process.env[regkey] !== undefined ? process.env[regkey] : match;
+                });
+                mainConfig[key] = value;
+            }
         }
     }
 

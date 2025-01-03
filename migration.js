@@ -69,24 +69,37 @@ function formatByName(str, obj) {
 };
 
 const importTag = "# import";
+const envRegex = /\$\{([^}]+)\}/g;
 
 function parseContent(filePath, config, opt) {
-    if (!config.parseScriptTags) {
-        return fs.readFileSync(filePath).toString();
+    var content = fs.readFileSync(filePath).toString();
+    
+    if (!config.parseScriptTags && !config.parseEnvVars) {
+        return content;
     }
 
-    const content = fs.readFileSync(filePath).toString();
-    const lines = content.split("\n");
-    const parsedLines = lines.map(line => {
-        var importIndexOf = line.indexOf(importTag);
-        if (importIndexOf != -1) {
-            const filename = line.substring(importIndexOf + importTag.length).trim();
-            return `${line}\n${fs.readFileSync(filename, "utf8")}`;
-        } else {
-            return line;
-        }
-    });
-    return parsedLines.join("\n");
+    if (config.parseScriptTags) {
+        const lines = content.split("\n");
+        const parsedLines = lines.map(line => {
+            var importIndexOf = line.indexOf(importTag);
+            if (importIndexOf != -1) {
+                const filename = line.substring(importIndexOf + importTag.length).trim();
+                return `${line}\n${fs.readFileSync(filename, "utf8")}`;
+            } else {
+                return line;
+            }
+        });
+        content = parsedLines.join("\n");
+    }
+
+    if (config.parseEnvVars) {
+        // replace all ${VAR} with process.env.VAR
+        content = content.replace(envRegex, function(match, key) {
+            return process.env[key] !== undefined ? process.env[key] : match;
+        });
+    }
+
+    return content;
 }
 
 function validateConfig(config) {
@@ -128,7 +141,6 @@ module.exports = {
         if (!validateConfig(config)) {
             return;
         }
-
         if (Array.isArray(config.migrationDir)) {
             for (let i = 0; i < config.migrationDir.length; i++) {
                 const migrationDir = config.migrationDir[i];
@@ -271,6 +283,7 @@ module.exports = {
             var parsedDirs = {};
             var usedNames = {};
             migrationDirs.sort();
+            var finalizeList = [];
             for (let i = 0; i < migrationDirs.length; i++) {
                 const migrationDir = migrationDirs[i];
                 if (!migrationDir) {
@@ -446,10 +459,12 @@ module.exports = {
                             type = types.after;
                             pushTo = afterList;
                         }
-    
+
+                    } else if (prefix == config.finalizePrefix) {
+                        finalizeList.push({fileName, filePath});
                     } else {
                         if (config.warnOnInvalidPrefix) {
-                            warning(`Migration file ${fileName} does not contain valid prefix. Skipping. Valied prefixes are '${config.upPrefix}', '${config.downPrefix}', '${config.repetablePrefix}', '${config.repetableBeforePrefix}', '${config.beforePrefix}', '${config.afterPrefix}' and separator prefix '${config.separatorPrefix}'.`);
+                            warning(`Migration file ${fileName} does not contain valid prefix. Skipping. Valied prefixes are '${config.upPrefix}', '${config.downPrefix}', '${config.repetablePrefix}', '${config.repetableBeforePrefix}', '${config.beforePrefix}', '${config.afterPrefix}', '${config.finalizePrefix}' and separator prefix '${config.separatorPrefix}'.`);
                         }
                         return;
                     }
@@ -481,6 +496,15 @@ module.exports = {
                             hash: m.hash
                         })
                     });
+
+                    if (finalizeList && finalizeList.length) {
+                        info("");
+                        console.info("Finalize scripts:");
+                        for (let item of finalizeList) {
+                            console.log(item);
+                        }
+                        console.info("Finalize completed successfully.");
+                    }
                     return;
                 }
                 if (isDown) {
@@ -494,17 +518,28 @@ module.exports = {
                             hash: m.hash
                         })
                     });
+
+                    if (finalizeList && finalizeList.length) {
+                        info("");
+                        info("Finalize scripts:");
+                        for (let item of finalizeList) {
+                            console.log(item);
+                        }
+                        console.info("Finalize completed successfully.");
+                    }
                 }
             }
     
             if (isUp) {
                 if (beforeList.length == 0 && repetableBeforeList.length == 0 && upList.length == 0 && repetableList.length == 0 && afterList.length == 0) {
                     warning("Nothing to migrate.");
+                    await finalize(finalizeList, config, opt);
                     return;
                 }
             } else if (isDown) {
                 if (downList.length) {
                     warning("Nothing to migrate.");
+                    await finalize(finalizeList, config, opt);
                     return;
                 }
             }
@@ -657,6 +692,8 @@ $migration_${ident}$;`);
                 }
                 process.exit(1);
             }
+
+            await finalize(finalizeList, config, opt);
         }
     
         } catch (e) {
@@ -670,4 +707,23 @@ $migration_${ident}$;`);
     }
 }
 
+async function finalize(finalizeList, config, opt) {
+    if (finalizeList && finalizeList.length) {
+        for (let item of finalizeList) {
+            info(item.fileName + " ...");
+            var result = await run({
+                command: config.psql,
+                config: config,
+                file: item.filePath,
+                verbose: opt.verbose,
+                skipErrorDetails: false,
+                //additionalArgs: ["-v", "VERBOSITY=terse", "-v", "ON_ERROR_STOP=1"],
+            });
+            if (result != 0) {
+                error("Finalize failed with exit code " + result + "., File: ", file);
+            }
+        }
+        console.info("Finalize completed successfully.");
+    }
+}
 

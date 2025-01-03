@@ -169,6 +169,13 @@ Examples:
 - `my_migration` and `undo_my_migration` are migration descriptions. This goes to the migration table as the description without underscores.
 - `.sql` is the migration suffix. This goes to the migration table as the type with the removed dot and in uppercase.
 
+### Finalize Migrations
+
+Finalize migrations have defualt prefix `TEST`. 
+Finalize migrations will always be executed as a separate files, not part of of the migration transaction.
+
+This is convinient place to keep TEST scripts.
+
 ## Migration Order
 
 1) Before Migrations
@@ -253,6 +260,9 @@ All configuration files present in the env file will override values in the conf
 - For the `dbname` value, additional keys: `pg_dbname`, `postgres_dbname`, `pgdbname`, `postgresdbname`, `db_name`, `pg_db`, `postgres_db`, `db`, `pg_database`, `postgres_database`, `database`.
 - For the `username` value, additional keys: `pg_user`, `postgres_user`, `postgresuser`, `db_user`, `user`, `pg_username`, `postgres_username`, `pgusername`, `postgresusername`, `db_username`, `db_username`.
 - For the `password` value, additional keys: `pg_password`, `postgres_password`, `pgpassword`, `postgrespassword`, `db_password`, `pg_pass`, `postgres_pass`, `pg_pass`, `pgpass`, `postgrespass`, `db_pass`, `pass`.
+
+IMPORTANT:
+Also, if you set env configuration set to false (default), but you do have .env file in your project, you can reference those value with env placeholder. Example: `skipPattern: "${TEST_ENV_VAR}"`
 
 ### Migrations
 
@@ -414,6 +424,16 @@ Build will produce:
 test.sql content
 */
 ```
+
+The default is true.
+
+#### parseEnvVars
+
+Parses the enviroment variables in migration file content by replacing ${ENVVAR} placeholders.
+
+For example: Enviroment variable called USERNAME will have this placeholder ${USERNAME} is replaced with the actual username.
+
+Note: if you have a .env file in a root, it will be automatically loaded.
 
 The default is true.
 
