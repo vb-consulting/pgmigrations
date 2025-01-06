@@ -9,12 +9,8 @@ function run(options) {
         error("Command is required.");
         return;
     }
-    if (!options.config[options.command]) {
-        error(`Config key ${options.command} is required. Please provide a valid config key.`);
-        return;
-    }
-
-    var cmd = options.config[options.command];
+    
+    var cmd = options.config[options.command] || options.command;
 
     if (options.config.host) {
         args.push(`--host=${options.config.host}`);
