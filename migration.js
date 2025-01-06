@@ -103,20 +103,20 @@ function parseContent(filePath, config, opt) {
 }
 
 function validateConfig(config) {
-    var mandatory = [
-        "upPrefix","downPrefix","repetablePrefix","repetableBeforePrefix",
-        "beforePrefix","afterPrefix","separatorPrefix",
-        "historyTableName","historyTableSchema",
-        "tmpDir","hashFunction"
-    ];
+    // var mandatory = [
+    //     "upPrefix","downPrefix","repetablePrefix","repetableBeforePrefix",
+    //     "beforePrefix","afterPrefix","separatorPrefix",
+    //     "historyTableName","historyTableSchema",
+    //     "tmpDir","hashFunction"
+    // ];
 
-    for (let i = 0; i < mandatory.length; i++) {
-        const key = mandatory[i];
-        if (!config[key]) {
-            error(`Config key ${key} is required. Please provide a valid config key.`);
-            return false;
-        }
-    }
+    // for (let i = 0; i < mandatory.length; i++) {
+    //     const key = mandatory[i];
+    //     if (!config[key]) {
+    //         error(`Config key ${key} is required. Please provide a valid config key.`);
+    //         return false;
+    //     }
+    // }
     return true;
 }
 
