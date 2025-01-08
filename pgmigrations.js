@@ -39,74 +39,22 @@ function buildConfig(opt) {
     }
 
     if (mainConfig.env) {
-        var envFile = ".env";
         if (typeof mainConfig.env === "string") {
-            envFile = mainConfig.env;
-        }
-        if (fs.existsSync(path.join(process.cwd(), envFile)) && fs.lstatSync(path.join(process.cwd(), envFile)).isFile()) {
-            if (opt.verbose) {
-                console.log("Using env file: " + envFile);
-            }
-            var content = fs.readFileSync(path.join(process.cwd(), envFile), "utf8");
-            var lines = content.split("\n");
-            for (var i = 0; i < lines.length; i++) {
-                var line = lines[i].trim();
-                if (line && line.indexOf("=") > -1) {
-                    var parts = line.split("=");
-                    if (parts.length <= 1) {
-                        continue;
-                    }
-                    var key = parts[0].trim().toLowerCase();
-                    var value = parts[1].trim();
-
-                    if (value.startsWith('"') && value.endsWith('"')) {
-                        value = value.substring(1, value.length - 1);
-                    }
-
-                    if (key === "pg_host" || key === "postgres_host" || key === "pghost" 
-                        || key === "postgreshost" || key === "db_host" || key === "dbhost") {
-                        key = "host";
-                    }
-
-                    if (key === "pg_dbname" || key === "postgres_dbname" || key === "pgdbname" 
-                        || key === "postgresdbname" || key === "db_name" || key === "dbname"
-                        || key === "pg_db" || key === "postgres_db" || key === "db"
-                        || key === "pg_database" || key === "postgres_database" || key === "database") {
-                        key = "dbname";
-                    }
-
-                    if (key === "pg_user" || key === "postgres_user" || key === "pguser" 
-                        || key === "postgresuser" || key === "db_user" || key === "user"
-                        || key === "pg_username" || key === "postgres_username" || key === "pgusername" 
-                        || key === "postgresusername" || key === "db_username") {
-                        key = "username";
-                    }
-
-                    if (key === "pg_password" || key === "postgres_password" || key === "pgpassword" 
-                        || key === "postgrespassword" || key === "db_password"
-                        || key === "pg_pass" || key === "postgres_pass" || key === "pgpass" 
-                        || key === "postgrespass" || key === "db_pass" || key === "pass") {
-                        key = "password";
-                    }
-
-                    if (mainConfig[key] !== undefined) {
-                        mainConfig[key] = value;
-                    }
-                }
-            }
+            require('dotenv').config({ 
+                path: path.resolve(__dirname, mainConfig.env)
+            });
         } else {
-            warning("Env file not found: " + envFile + ". Please provide a valid env file or don't use the env file.. Skipping env file import.");
+            require('dotenv').config();
         }
-    } else {
-        require('dotenv').config();
-        for (var key of Object.keys(mainConfig)) {
-            var value = mainConfig[key];
-            if (typeof value === "string") {
-                value = value.replace(envRegex, function(match, regkey) {
-                    return process.env[regkey] !== undefined ? process.env[regkey] : match;
-                });
-                mainConfig[key] = value;
-            }
+    }
+
+    for (var key of Object.keys(mainConfig)) {
+        var value = mainConfig[key];
+        if (typeof value === "string") {
+            value = value.replace(envRegex, function(match, regkey) {
+                return process.env[regkey] !== undefined ? process.env[regkey] : match;
+            });
+            mainConfig[key] = value;
         }
     }
 

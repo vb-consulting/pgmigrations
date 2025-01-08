@@ -13,7 +13,7 @@ module.exports = {
     pgdump: "pg_dump",
     schemaDumpAdditionalArgs: ["--no-owner", "--no-acl"],
     verbose: false,
-    env: false,
+    env: true,
 
     migrationDir: "",
     

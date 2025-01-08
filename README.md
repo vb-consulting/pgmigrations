@@ -202,12 +202,6 @@ module.exports = {
 }
 ```
 
-Or, if you already have the `.ENV` file, and prefer to sue that, it can be as simple as:
-
-```js
-module.exports = { env: true }
-```
-
 Any key in this configuration will override the default values listed below.
 
 ### Server Connection
@@ -250,19 +244,10 @@ Set to true to log additional information, including all commands issued to clie
 
 #### env
 
-Set to true to parse the `.ENV` file and merge it with the configuration.
-Set to the string value to specify the file name to be parsed.
-
-The default is false (not used).
-
-All configuration files present in the env file will override values in the configuration. Additional keys for connection properties will also be parsed:
-- For the `host` value, additional keys: `pg_host`, `postgres_host`, `pghost`, `postgreshost`, `db_host`, `dbhost`.
-- For the `dbname` value, additional keys: `pg_dbname`, `postgres_dbname`, `pgdbname`, `postgresdbname`, `db_name`, `pg_db`, `postgres_db`, `db`, `pg_database`, `postgres_database`, `database`.
-- For the `username` value, additional keys: `pg_user`, `postgres_user`, `postgresuser`, `db_user`, `user`, `pg_username`, `postgres_username`, `pgusername`, `postgresusername`, `db_username`, `db_username`.
-- For the `password` value, additional keys: `pg_password`, `postgres_password`, `pgpassword`, `postgrespassword`, `db_password`, `pg_pass`, `postgres_pass`, `pg_pass`, `pgpass`, `postgrespass`, `db_pass`, `pass`.
-
-IMPORTANT:
-Also, if you set env configuration set to false (default), but you do have .env file in your project, you can reference those value with env placeholder. Example: `skipPattern: "${TEST_ENV_VAR}"`
+- Set to true to load the enviorment file from `.env` by default.
+- Set to string value to load the enviorment file from the string value.
+- Set to false to ignore enviorment file.
+- Default is true.
 
 ### Migrations
 
