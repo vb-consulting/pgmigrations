@@ -503,7 +503,6 @@ module.exports = {
                         for (let item of finalizeList) {
                             console.log(item);
                         }
-                        console.info("Finalize completed successfully.");
                     }
                     return;
                 }
@@ -525,7 +524,6 @@ module.exports = {
                         for (let item of finalizeList) {
                             console.log(item);
                         }
-                        console.info("Finalize completed successfully.");
                     }
                 }
             }
