@@ -9,10 +9,11 @@ const {migrate, history} = require("./migration.js");
 const tests = require("./tests.js");
 
 var defaultconfigFile = "./db.js";
+var defaultconfigFile2 = "./pgmigrations.js";
 
 var args = process.argv.slice(2);
 var cmd = args[0];
-var userConfigs = [defaultconfigFile];
+var userConfigs = [defaultconfigFile, defaultconfigFile2];
 
 const envRegex = /\$\{([^}]+)\}/g;
 
@@ -33,7 +34,7 @@ function buildConfig(opt) {
                 mainConfig[key] = config[key];
             }
 
-        } else if (userConfigs[i] !== defaultconfigFile) {
+        } else if (userConfigs[i] !== defaultconfigFile && userConfigs[i] !== defaultconfigFile2) {
             warning("Config file not found: " + configFile + ". Please provide a valid config file.");
         }
     }
@@ -98,7 +99,7 @@ if (!cmd || cmd === 'help' || cmd === '-h' || cmd === '--help') {
 
     console.log('\nConfigurations files:');
     sections([
-        {key: '', value: './db.js from the current dir is the default configuration file. It will be ignored if not found.'},
+        {key: '', value: './db.js or ./pgmigrations.js from the current dir is the default configuration file. It will be ignored if not found.'},
         {key: '--config=[file]', value: 'Set the custom config file or multiple files (multiple --config switches). Config files are merged in the order they are provided.'}
     ], 16);
 
