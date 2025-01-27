@@ -494,10 +494,19 @@ module.exports = {
                 finalUpList = indexedList.sort((a, b) => {
                     const pathA = getDirectoryPath(a.script);
                     const pathB = getDirectoryPath(b.script);
-                    const segmentsA = a.script.split('/').length;
-                    const segmentsB = b.script.split('/').length;
-                    if (segmentsA !== segmentsB) {
-                        return segmentsA > segmentsB ? -1 : 1;
+                    if (config.dirsOrderedBySegments) {
+                        const segmentsA = a.script.split('/').length;
+                        const segmentsB = b.script.split('/').length;
+                        if (segmentsA !== segmentsB) {
+                            if (config.dirsOrderedBySegmentsDesc) {
+                                return segmentsA > segmentsB ? -1 : 1;
+                            } else {
+                                return segmentsA > segmentsB ? 1 : -1;
+                            }
+                        }
+                    }
+                    if (pathA !== pathB) {
+                        return pathA.localeCompare(pathB);
                     }
                     return a.originalIndex - b.originalIndex;
                 });

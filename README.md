@@ -326,6 +326,14 @@ Search recursively trough migration subdirectories. The default is false.
 
 When `recursiveDirs` is true, order the migrations based on the directory first and second based on mihgration type. Default is true.
 
+#### dirsOrderedBySegments
+
+When `dirsOrderedByName` is true, order directories first by number of directory segments. Default is true (same order as VSC).
+
+#### dirsOrderedBySegmentsDesc
+
+When `dirsOrderedByName` is true, and `dirsOrderedBySegments` is also true, order directories first by number of directory segments descending. This will put files in lower directories last. Default is true (same order as VSC).
+
 #### tmpDir
 
 Temporary directory for migration scripts. The Default value is your OS temp dir plus  `./___pgmigrations`.
