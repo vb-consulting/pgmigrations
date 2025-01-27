@@ -322,6 +322,10 @@ An array of file extensions that will be considered as the migration file. The d
 
 Search recursively trough migration subdirectories. The default is false.
 
+#### dirsOrderedByName
+
+When `recursiveDirs` is true, order the migrations based on the directory first and second based on mihgration type. Default is true.
+
 #### tmpDir
 
 Temporary directory for migration scripts. The Default value is your OS temp dir plus  `./___pgmigrations`.

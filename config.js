@@ -34,6 +34,7 @@ module.exports = {
     finalizePrefix: "TEST",
     migrationExtensions: [".sql"],
     recursiveDirs: false,
+    dirsOrderedByName: true,
     keepMigrationDirHistory: false,
     tmpDir: path.join(os.tmpdir(), "___pgmigrations"),
     historyTableName: "schema_history",

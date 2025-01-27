@@ -483,10 +483,29 @@ module.exports = {
     
             upList.sort((a, b) => config.versionSortFunction(a, b, config));
             downList.sort((a, b) => config.versionSortFunction(b, a, config));
+
+            var finalUpList;
+            if (config.recursiveDirs && config.dirsOrderedByName) {
+                const getDirectoryPath = (scriptPath) => {
+                    const lastSlashIndex = scriptPath.lastIndexOf('/');
+                    return lastSlashIndex !== -1 ? scriptPath.substring(0, lastSlashIndex + 1) : '';
+                };
+                const indexedList = beforeList.concat(repetableBeforeList).concat(upList).concat(repetableList).concat(afterList).map((item, index) => ({...item, originalIndex: index}));
+                finalUpList = indexedList.sort((a, b) => {
+                    const pathA = getDirectoryPath(a.script);
+                    const pathB = getDirectoryPath(b.script);
+                    if (pathA.length !== pathB.length) {
+                        return pathB.length - pathA.length;
+                    }
+                    return a.originalIndex - b.originalIndex;
+                });
+            } else {
+                finalUpList = beforeList.concat(repetableBeforeList).concat(upList).concat(repetableList).concat(afterList);
+            }
     
             if (opt.list) {
                 if (isUp) {
-                    beforeList.concat(repetableBeforeList).concat(upList).concat(repetableList).concat(afterList).forEach((m, index) => {
+                    finalUpList.forEach((m, index) => {
                         console.log({
                             rank: index+1,
                             name: m.name, 
@@ -618,11 +637,12 @@ begin
             }
     
             if (isUp) {
-                addMigration(beforeList);
-                addMigration(repetableBeforeList);
-                addMigration(upList);
-                addMigration(repetableList);
-                addMigration(afterList);
+                // addMigration(beforeList);
+                // addMigration(repetableBeforeList);
+                // addMigration(upList);
+                // addMigration(repetableList);
+                // addMigration(afterList);
+                addMigration(finalUpList);
             } else if (isDown) {
                 addMigration(downList);
             }
