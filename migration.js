@@ -463,10 +463,20 @@ module.exports = {
                     } else if (prefix == config.finalizePrefix) {
                         finalizeList.push({fileName, filePath});
                     } else {
-                        if (config.warnOnInvalidPrefix) {
+                        if (config.allFilesAreRepetable) {
+                            if (isUp) {
+                                type = types.repetable;
+        
+                                if (repetableHashes[hash + ";" + script]) {
+                                    return;
+                                }
+                                pushTo = repetableList;
+                                name = fileName.split(".").slice(0, -1).join(".").replace(/[^a-zA-Z0-9]/g, " ").trim().replace(/\s+/g, " ");
+                            }
+                        } else if (config.warnOnInvalidPrefix) {
                             warning(`Migration file ${fileName} does not contain valid prefix. Skipping. Valied prefixes are '${config.upPrefix}', '${config.downPrefix}', '${config.repetablePrefix}', '${config.repetableBeforePrefix}', '${config.beforePrefix}', '${config.afterPrefix}', '${config.finalizePrefix}' and separator prefix '${config.separatorPrefix}'.`);
+                            return;
                         }
-                        return;
                     }
     
                     if (pushTo) {
@@ -490,24 +500,62 @@ module.exports = {
                     const lastSlashIndex = scriptPath.lastIndexOf('/');
                     return lastSlashIndex !== -1 ? scriptPath.substring(0, lastSlashIndex + 1) : '';
                 };
-                const indexedList = beforeList.concat(repetableBeforeList).concat(upList).concat(repetableList).concat(afterList).map((item, index) => ({...item, originalIndex: index}));
+                const indexedList = beforeList
+                    .concat(repetableBeforeList)
+                    .concat(upList)
+                    .concat(repetableList)
+                    .concat(afterList)
+                    .map((item, index) => ({...item, originalIndex: index}));
                 finalUpList = indexedList.sort((a, b) => {
+
                     const pathA = getDirectoryPath(a.script);
                     const pathB = getDirectoryPath(b.script);
-                    if (config.dirsOrderedBySegments) {
-                        const segmentsA = a.script.split('/').length;
-                        const segmentsB = b.script.split('/').length;
-                        if (segmentsA !== segmentsB) {
-                            if (config.dirsOrderedBySegmentsDesc) {
-                                return segmentsA > segmentsB ? -1 : 1;
-                            } else {
-                                return segmentsA > segmentsB ? 1 : -1;
-                            }
+
+                    if (config.dirsNaturalOrder !== true) {
+                        if (pathA !== pathB) {
+                            return (config.dirsOrderReversed ? -1 : 1) * pathA.localeCompare(pathB);
+                        }
+                        return a.originalIndex - b.originalIndex;
+                    }
+                    
+                    const aSegments = pathA.split('/');
+                    const bSegments = pathB.split('/');
+                    
+                    const aLength = aSegments.length;
+                    const bLength = bSegments.length;
+                    const maxLen = Math.max(aLength, bLength);
+            
+                    for (let i = 0; i < maxLen; i++) {
+                        const aSeg = i < aLength ? aSegments[i] : null;
+                        const bSeg = i < bLength ? bSegments[i] : null;
+            
+                        // Check if current segments are directories or files
+                        const aIsDir = i < aLength - 1;
+                        const bIsDir = i < bLength - 1;
+            
+                        if (aSeg === null || bSeg === null) {
+                            // One path is shorter; handled after loop
+                            break;
+                        }
+            
+                        // Compare directories before files at the same level
+                        if (aIsDir !== bIsDir) {
+                            return (config.dirsOrderReversed ? -1 : 1) * (aIsDir ? -1 : 1);
+                        }
+            
+                        // Compare segment names lexicographically
+                        const cmp = aSeg.localeCompare(bSeg);
+                        if (cmp !== 0) {
+                            return (config.dirsOrderReversed ? -1 : 1) * cmp;
                         }
                     }
-                    if (pathA !== pathB) {
-                        return pathA.localeCompare(pathB);
+            
+                    // Handle paths where one is a prefix of the other
+                    if (aLength !== bLength) {
+                        return (config.dirsOrderReversed ? -1 : 1) * aLength - bLength;
                     }
+            
+                    // Paths are identical; use original index
                     return a.originalIndex - b.originalIndex;
                 });
             } else {

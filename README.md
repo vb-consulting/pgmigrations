@@ -318,6 +318,10 @@ Separator prefix. The default value is `__`
 
 An array of file extensions that will be considered as the migration file. The default is `[".sql"]`.
 
+#### allFilesAreRepetable
+
+All files that don't have valid prefix are repetable migrations.
+
 #### recursiveDirs
 
 Search recursively trough migration subdirectories. The default is false.
@@ -326,13 +330,21 @@ Search recursively trough migration subdirectories. The default is false.
 
 When `recursiveDirs` is true, order the migrations based on the directory first and second based on mihgration type. Default is true.
 
-#### dirsOrderedBySegments
+#### dirsNaturalOrder
 
-When `dirsOrderedByName` is true, order directories first by number of directory segments. Default is true (same order as VSC).
+When `dirsOrderedByName` is true, order directories same as Visual Studio Code Explorer would (natural order), For example:
 
-#### dirsOrderedBySegmentsDesc
+```
+backend/auth/file1.sql
+backend/auth/file2.sql
+backend/schema/subdir/file1.sql
+backend/schema/file1.sql
+backend/file1.sql
+```
 
-When `dirsOrderedByName` is true, and `dirsOrderedBySegments` is also true, order directories first by number of directory segments descending. This will put files in lower directories last. Default is true (same order as VSC).
+#### dirsOrderReversed
+
+When `dirsOrderedByName` is true, this will reverse order of directories.
 
 #### tmpDir
 
