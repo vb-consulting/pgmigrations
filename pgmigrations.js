@@ -79,7 +79,7 @@ if (!cmd || cmd === 'help' || cmd === '-h' || cmd === '--help') {
         {key: "up", value: "Run migrations migrations in order: before, before repeatable, up, repeatable, after. Optional switches: --list, --dry, --full, --dump."},
         {key: "down", value: "Run only down migrations. Optional switches: --list, --dry, --full, --dump."},
         {key: "history", value: "console.log the current migration schema history."},
-        {key: "run | exec", value: "Run a command or a script file with psql. Command text or a script file is required as the second argument. Any additional arguments will be passed to a psql command."},
+        {key: "run | exec", value: "Run a command or a script file or script directory with psql. Command text or a script file is required as the second argument. Any additional arguments will be passed to a psql command."},
         {key: "dump | schema", value: "Run pg_dump command with --schema-only --encoding=UTF8 swtiches on (plus schemaDumpAdditionalArgs from the config). Any additional arguments will be passed to pg_dump command."},
         {key: "psql", value: "Run arbitrary psql command or open psql shell. Any additional arguments will be passed to a psql."},
         {key: "test", value: "Run database tests."},

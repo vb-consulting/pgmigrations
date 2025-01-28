@@ -1,6 +1,7 @@
 const fs = require("fs");
 const cp = require("child_process");
 const {info, error, warning} = require("./log.js");
+const path = require("path");
 
 function run(options) {
     var args = [];
@@ -180,6 +181,34 @@ function run(options) {
 
 function command(command, opt, additionalArgs, config, isCommand = false, muted = false) {
     var fileExists = false;
+    var isDir = false;
+    if (!isCommand) {
+        isDir = (fs.existsSync(command) && fs.lstatSync(command).isDirectory());
+        if (isDir) {
+            var files = fs.readdirSync(command, {recursive: true});
+            for (let i = 0; i < files.length; i++) {
+                let file = files[i];
+                if (file.endsWith(".sql")) {
+                    file = path.join(command, file);
+                    info(file);
+                    run({
+                        command: config.psql,
+                        config: config,
+                        sql: undefined,
+                        file: file,
+                        dump: false,
+                        additionalArgs: additionalArgs,
+                        verbose: opt.verbose,
+                        inherit: false,
+                        returnBuffer: false,
+                        muted: muted
+                    });
+                }
+            }
+            return;
+        }
+    }
+
     if (!isCommand) {
         fileExists = (fs.existsSync(command) && fs.lstatSync(command).isFile());
     }

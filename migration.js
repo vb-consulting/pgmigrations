@@ -376,6 +376,7 @@ module.exports = {
                             if (upVersions[version]) {
                                 error(`Migration file ${script} contains duplicate version ${version} already present in ${upVersions[version]}. Exiting...`);
                                 process.exit(config.failureExitCode);
+                                return;
                             }
                             upVersions[version] = script;
                             type = types.up;
@@ -405,6 +406,7 @@ module.exports = {
                             if (downVersions[version]) {
                                 error(`Migration file ${script} contains duplicate version ${version} already present in ${downVersions[version]}. Exiting...`);
                                 process.exit(config.failureExitCode);
+                                return;
                             }
                             downVersions[version] = script;
                             type = types.down;
@@ -758,6 +760,7 @@ $migration_${ident}$;`);
                         console.info("Migration file: " + tmpFile);
                     }
                     process.exit(config.failureExitCode);
+                    return;
                 } else {
                     console.info("Migration completed successfully.");
                 }
@@ -768,6 +771,7 @@ $migration_${ident}$;`);
                     console.info("Migration file: " + tmpFile);
                 }
                 process.exit(config.failureExitCode);
+                return;
             }
 
             await finalize(finalizeList, config, opt);
@@ -780,6 +784,7 @@ $migration_${ident}$;`);
                 console.info("Migration file: " + tmpFile);
             }
             process.exit(config.failureExitCode);
+            return;
         }
     }
 }
