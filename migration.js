@@ -375,7 +375,7 @@ module.exports = {
                             version = prefix.slice(config.upPrefix.length).trim();
                             if (upVersions[version]) {
                                 error(`Migration file ${script} contains duplicate version ${version} already present in ${upVersions[version]}. Exiting...`);
-                                process.exit(1);
+                                process.exit(config.failureExitCode);
                             }
                             upVersions[version] = script;
                             type = types.up;
@@ -404,7 +404,7 @@ module.exports = {
                             version = prefix.slice(config.downPrefix.length).trim();
                             if (downVersions[version]) {
                                 error(`Migration file ${script} contains duplicate version ${version} already present in ${downVersions[version]}. Exiting...`);
-                                process.exit(1);
+                                process.exit(config.failureExitCode);
                             }
                             downVersions[version] = script;
                             type = types.down;
@@ -757,7 +757,7 @@ $migration_${ident}$;`);
                     if (tmpFile && fs.existsSync(tmpFile)) {
                         console.info("Migration file: " + tmpFile);
                     }
-                    process.exit(1);
+                    process.exit(config.failureExitCode);
                 } else {
                     console.info("Migration completed successfully.");
                 }
@@ -767,7 +767,7 @@ $migration_${ident}$;`);
                 if (tmpFile && fs.existsSync(tmpFile)) {
                     console.info("Migration file: " + tmpFile);
                 }
-                process.exit(1);
+                process.exit(config.failureExitCode);
             }
 
             await finalize(finalizeList, config, opt);
@@ -779,7 +779,7 @@ $migration_${ident}$;`);
             if (tmpFile && fs.existsSync(tmpFile)) {
                 console.info("Migration file: " + tmpFile);
             }
-            process.exit(1);
+            process.exit(config.failureExitCode);
         }
     }
 }

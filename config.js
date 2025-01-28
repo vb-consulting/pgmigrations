@@ -58,6 +58,8 @@ module.exports = {
     sortFunction: (a, b, config) => config.sortByPath ? a.script.localeCompare(b.script, "en") : a.name.localeCompare(b.name, "en"),
     versionSortFunction: (a, b, config) => a.version.localeCompare(b.version, "en", {numeric: true}),
 
+    failureExitCode: -1,
+
     testFunctionsSchemaSimilarTo: "test",
     testFunctionsNameSimilarTo: null,
     testFunctionsCommentSimilarTo: null,

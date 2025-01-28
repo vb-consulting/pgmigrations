@@ -342,9 +342,11 @@ backend/schema/file1.sql
 backend/file1.sql
 ```
 
+Defualt is true.
+
 #### dirsOrderReversed
 
-When `dirsOrderedByName` is true, this will reverse order of directories.
+When `dirsOrderedByName` is true, this will reverse order of directories. Defualt is false.
 
 #### tmpDir
 
@@ -493,6 +495,10 @@ The test list returns parameterless functions and procedures that match these co
 Default: `false`.
 
 When the test routine is the Function type, automatically begin and rollback transaction.
+
+#### failureExitCode
+
+Return this error code on failure. Default is -1.
 
 ## Contributing
 

@@ -109,7 +109,7 @@ module.exports = async function(opt, config) {
 
     if (failedCount > 0) {
         // exit process with non-zero status
-        process.exit(1);
+        process.exit(config.failureExitCode);
     }
 }
 
