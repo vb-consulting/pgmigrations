@@ -29,7 +29,7 @@ function buildConfig(opt) {
             for (var key in config) {
                 if (mainConfig[key] === undefined) {
                     error("Unknown config key: " + key +". Please provide a valid config key.");
-                    return;
+                    return {};
                 }
                 mainConfig[key] = config[key];
             }
@@ -59,7 +59,7 @@ function buildConfig(opt) {
         }
     }
 
-    return mainConfig;
+    return mainConfig || {};
 }
 
 if (!cmd) {

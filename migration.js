@@ -338,7 +338,34 @@ module.exports = {
                     let prefix = parts[0];
                     let suffix = parts.slice(1).join(config.separatorPrefix);
     
+                    let version = null;
                     let name = suffix.split(".").slice(0, -1).join(".").replace(/[^a-zA-Z0-9]/g, " ").trim().replace(/\s+/g, " ");
+                    const script = ((hasMultipleDirs ? (migrationDir + "/" + fileName).replace(/\\/g, "/") : fileName).replace(/\/+/g, "/")).replace('./', "");
+
+                    if (prefix.startsWith(config.upPrefix) || prefix.startsWith(config.downPrefix)) {
+                        version = prefix.slice(config.upPrefix.length).trim();
+                        if (config.migrationDir && config.appendTopDirToVersion) {
+                            const dirs = migrationDir.replace(/\\/g, "/").split("/");
+                            const topDir = dirs[dirs.length - 1];
+                            //const parts = topDir.split(config.appendTopDirToVersionSplitBy);
+                            //console.log(topDir);
+                            if (topDir) {
+                                if (config.appendTopDirToVersionSplitBy) {
+                                    //version = topDir + version;
+                                    const topDirSplit = topDir.split(config.appendTopDirToVersionSplitBy);
+                                    const part = topDirSplit[config.appendTopDirToVersionPart];
+                                    if (part) {
+                                        version = part + version;
+                                    }
+                                }
+                                else {
+                                    version = topDir + version;
+                                }
+                            }
+                        }
+                        name = version + " " + name;
+                    }
+                    
                     if (usedNames[name]) {
                         let dirParts = migrationDir.replace(/[^a-zA-Z0-9]/g, " ").trim().split(" ");
                         let nameSet = false;
@@ -359,20 +386,17 @@ module.exports = {
                     }
                     usedNames[name] = true;
     
-                    let version = null;
                     let type = null;
                     const meta = {};
     
                     //const content = await parseContent(filePath, config, opt);
                     const content = parseContent(filePath, config, opt);
                     const hash = config.hashFunction(content);
-                    const script = ((hasMultipleDirs ? (migrationDir + "/" + fileName).replace(/\\/g, "/") : fileName).replace(/\/+/g, "/")).replace('./', "");
     
                     let pushTo = null;
     
                     if (prefix.startsWith(config.upPrefix) || upDirsHash[migrationDir]) {
                         if (isUp) {
-                            version = prefix.slice(config.upPrefix.length).trim();
                             if (upVersions[version]) {
                                 error(`Migration file ${script} contains duplicate version ${version} already present in ${upVersions[version]}. Exiting...`);
                                 process.exit(config.failureExitCode);
@@ -402,7 +426,6 @@ module.exports = {
     
                     } else if (prefix.startsWith(config.downPrefix) || downDirsHash[migrationDir]) {
                         if (isDown) {
-                            version = prefix.slice(config.downPrefix.length).trim();
                             if (downVersions[version]) {
                                 error(`Migration file ${script} contains duplicate version ${version} already present in ${downVersions[version]}. Exiting...`);
                                 process.exit(config.failureExitCode);

@@ -319,7 +319,6 @@ The after migration type prefix. The default is `after`.
 
 Separator prefix. The default value is `__`
 
-
 #### migrationExtensions: [".sql"],
 
 An array of file extensions that will be considered as the migration file. The default is `[".sql"]`.
@@ -353,6 +352,26 @@ Defualt is true.
 #### dirsOrderReversed
 
 When `dirsOrderedByName` is true, this will reverse order of directories. Defualt is false.
+
+#### appendTopDirToVersion
+
+If `migrationDir` is true and versioned migration - add the top level directory name to version number,
+
+Default is false.
+
+#### appendTopDirToVersionSplitBy
+
+If `migrationDir` is true and versioned migration:
+split the top level directory name by this string and the index `appendTopDirToVersionPart` to version number.
+
+Default is "__".
+
+#### appendTopDirToVersionPart
+
+If `migrationDir` is true and versioned migration:
+split the top level directory name by this string and the index `appendTopDirToVersionPart` to version number.
+
+Default is 0.
 
 #### tmpDir
 
