@@ -333,7 +333,7 @@ Search recursively trough migration subdirectories. The default is false.
 
 #### dirsOrderedByName
 
-When `recursiveDirs` is true, order the migrations based on the directory first and second based on mihgration type. Default is true.
+When `recursiveDirs` is true, order the migrations based on the directory first and second based on migration type. Default is true.
 
 #### dirsNaturalOrder
 
@@ -528,6 +528,10 @@ When the test routine is the Function type, automatically begin and rollback tra
 #### failureExitCode
 
 Return this error code on failure. Default is -1.
+
+#### migrationAdditionalArgs
+
+Additional psql arguments for migration and finalization. Deafault is nothing.
 
 ## Contributing
 
