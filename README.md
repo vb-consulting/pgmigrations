@@ -477,6 +477,10 @@ The default is true.
 
 During the migration, don't print anything after this record count to increase redability of console output. Default is 1. 
 
+#### runOlderVersions
+
+Set to true to run versioned migration even when higher version was applied. Default is false.
+
 ### Testing
 
 Test command will run tests on PostgreSQL functions and procedures: 

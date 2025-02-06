@@ -51,6 +51,7 @@ module.exports = {
     parseScriptTags: true,
     parseEnvVars: true,
     migrationErrorTreshold: 1,
+    runOlderVersions: false,
 
     hashFunction: function(data) {
         const hash = crypto.createHash('sha1');

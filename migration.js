@@ -121,6 +121,12 @@ function validateConfig(config) {
 }
 
 
+function getDirectoryPath(scriptPath) {
+    const lastSlashIndex = scriptPath.lastIndexOf('/');
+    return lastSlashIndex !== -1 ? scriptPath.substring(0, lastSlashIndex + 1) : '';
+};
+
+
 module.exports = {
     history: async function(opt, config) {
 
@@ -216,7 +222,8 @@ module.exports = {
                     versionDict[h.version] = h;
                 }
             });
-    
+            var versionKeys = Object.keys(versionDict).map(k => Object({version: k})).sort((a, b) => config.versionSortFunction(a, b, config));
+
             const migrationDirs = Array.isArray(config.migrationDir) ? config.migrationDir : [config.migrationDir];
             
             const upDirsHash = {};
@@ -342,6 +349,9 @@ module.exports = {
                     let name = suffix.split(".").slice(0, -1).join(".").replace(/[^a-zA-Z0-9]/g, " ").trim().replace(/\s+/g, " ");
                     const script = ((hasMultipleDirs ? (migrationDir + "/" + fileName).replace(/\\/g, "/") : fileName).replace(/\/+/g, "/")).replace('./', "");
 
+                    //const topDir = getDirectoryPath(script);
+                    //console.log(topDir);
+
                     if (prefix.startsWith(config.upPrefix) || prefix.startsWith(config.downPrefix)) {
                         version = prefix.slice(config.upPrefix.length).trim();
                         if (config.migrationDir && config.appendTopDirToVersion) {
@@ -394,7 +404,7 @@ module.exports = {
                     const hash = config.hashFunction(content);
     
                     let pushTo = null;
-    
+                    
                     if (prefix.startsWith(config.upPrefix) || upDirsHash[migrationDir]) {
                         if (isUp) {
                             if (upVersions[version]) {
@@ -413,7 +423,15 @@ module.exports = {
                             if (versionDict[version]) {
                                 return;
                             }
-    
+
+                            var lastVersion = versionKeys[versionKeys.length - 1];
+                            if (lastVersion && config.versionSortFunction(lastVersion, {version}, config) > 0) {
+                                if (!config.runOlderVersions) {
+                                    warning(`Migration file ${migrationDir}/${fileName} version is lower than the highest version ${lastVersion.version}. To include this migration set runOlderVersions to true in configuration. Skipping...`);
+                                    return;
+                                }
+                            }
+
                             var count = versionUpNames[name];
                             count = count ? count + 1 : 1;
                             if (count > 1) {
@@ -521,10 +539,6 @@ module.exports = {
 
             var finalUpList;
             if (config.recursiveDirs && config.dirsOrderedByName) {
-                const getDirectoryPath = (scriptPath) => {
-                    const lastSlashIndex = scriptPath.lastIndexOf('/');
-                    return lastSlashIndex !== -1 ? scriptPath.substring(0, lastSlashIndex + 1) : '';
-                };
                 const indexedList = beforeList
                     .concat(repetableBeforeList)
                     .concat(upList)
