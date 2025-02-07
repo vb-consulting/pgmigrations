@@ -17,7 +17,7 @@ var userConfigs = [defaultconfigFile, defaultconfigFile2];
 
 const envRegex = /\$\{([^}]+)\}/g;
 
-sections([{key: "pgmigrations version", value: require("./package.json").version}]);
+warning(require("./package.json").version);
 
 function buildConfig(opt) {
     for (var i = 0; i < userConfigs.length; i++) {

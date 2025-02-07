@@ -616,7 +616,7 @@ module.exports = {
 
                     if (finalizeList && finalizeList.length) {
                         info("");
-                        console.info("Finalize scripts:");
+                        warning("Finalize scripts:");
                         for (let item of finalizeList) {
                             console.log(item);
                         }
@@ -794,18 +794,18 @@ $migration_${ident}$;`);
                 if (result != 0) {
                     error("Migration failed with exit code " + result + ". Changes have been rolled back.");
                     if (tmpFile && fs.existsSync(tmpFile)) {
-                        console.info("Migration file: " + tmpFile);
+                        warning("Migration file: " + tmpFile);
                     }
                     process.exit(config.failureExitCode);
                     return;
                 } else {
-                    console.info("Migration completed successfully.");
+                    warning("Migration completed successfully.");
                 }
 
             } catch (e) {
                 error("Migration failed. Changes have been rolled back.");
                 if (tmpFile && fs.existsSync(tmpFile)) {
-                    console.info("Migration file: " + tmpFile);
+                    warning("Migration file: " + tmpFile);
                 }
                 process.exit(config.failureExitCode);
                 return;
@@ -818,7 +818,7 @@ $migration_${ident}$;`);
             error(e);
             //error("Migration failed. Changes have been rolled back.");
             if (tmpFile && fs.existsSync(tmpFile)) {
-                console.info("Migration file: " + tmpFile);
+                warning("Migration file: " + tmpFile);
             }
             process.exit(config.failureExitCode);
             return;
@@ -842,7 +842,7 @@ async function finalize(finalizeList, config, opt) {
                 error("Finalize failed with exit code " + result + "., File: ", file);
             }
         }
-        console.info("Finalize completed successfully.");
+        warning("Finalize completed successfully.");
     }
 }
 
