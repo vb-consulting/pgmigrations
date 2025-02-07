@@ -105,7 +105,7 @@ function run(options, stdErrOnly) {
         options.hasError = false;
         const child = cp.spawn(cmd, args, spawnOptions);
         if (!options.inherit) {
-            if (stdErrOnly) {
+            if (!stdErrOnly) {
                 child.stdout.on("data", data => {
                     if (options.returnBuffer) {
                         stdoutBuffer += data.toString().trim();

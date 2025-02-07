@@ -140,7 +140,7 @@ module.exports = {
         if (exists) {
             info(JSON.parse(await query(schemaQuery(historyQuery), opt, config)));
         } else {
-            info("History table does not exist.");
+            error("History table does not exists!");
         }
     },
     migrate: async function(cmd, opt, config) {
@@ -504,7 +504,7 @@ module.exports = {
                         }
 
                     } else if (prefix == config.finalizePrefix) {
-                        finalizeList.push({fileName, filePath});
+                        finalizeList.push({fileName, filePath: filePath.replace(/\\/g, "/").replace(/\/+/g, "/").replace('./', "").replace('./', "")});
                     } else {
                         if (config.allFilesAreRepetable) {
                             if (isUp) {
