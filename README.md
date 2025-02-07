@@ -473,10 +473,6 @@ Note: if you have a .env file in a root, it will be automatically loaded.
 
 The default is true.
 
-#### migrationErrorTreshold
-
-During the migration, don't print anything after this record count to increase redability of console output. Default is 1. 
-
 #### runOlderVersions
 
 Set to true to run versioned migration even when higher version was applied. Default is false.

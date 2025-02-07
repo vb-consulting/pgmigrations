@@ -648,13 +648,13 @@ module.exports = {
             if (isUp) {
                 if (beforeList.length == 0 && repetableBeforeList.length == 0 && upList.length == 0 && repetableList.length == 0 && afterList.length == 0) {
                     warning("Nothing to migrate.");
-                    finalize(finalizeList, config, opt);
+                    await finalize(finalizeList, config, opt);
                     return;
                 }
             } else if (isDown) {
                 if (downList.length) {
                     warning("Nothing to migrate.");
-                    finalize(finalizeList, config, opt);
+                    await finalize(finalizeList, config, opt);
                     return;
                 }
             }
@@ -789,9 +789,8 @@ $migration_${ident}$;`);
                     file: tmpFile,
                     verbose: opt.verbose,
                     skipErrorDetails: true,
-                    additionalArgs: !config.migrationAdditionalArgs ? [] : config.migrationAdditionalArgs,
                     //additionalArgs: ["-v", "VERBOSITY=terse", "-v", "ON_ERROR_STOP=1"],
-                });
+                }, true);
                 if (result != 0) {
                     error("Migration failed with exit code " + result + ". Changes have been rolled back.");
                     if (tmpFile && fs.existsSync(tmpFile)) {
@@ -812,7 +811,7 @@ $migration_${ident}$;`);
                 return;
             }
 
-            finalize(finalizeList, config, opt);
+            await finalize(finalizeList, config, opt);
         }
     
         } catch (e) {
@@ -827,26 +826,23 @@ $migration_${ident}$;`);
     }
 }
 
-function finalize(finalizeList, config, opt) {
-    setTimeout(async () => {
-        if (finalizeList && finalizeList.length) {
-            for (let item of finalizeList) {
-                info(item.fileName + " ...");
-                var result = await run({
-                    command: config.psql,
-                    config: config,
-                    file: item.filePath,
-                    verbose: opt.verbose,
-                    skipErrorDetails: false,
-                    additionalArgs: !config.migrationAdditionalArgs ? [] : config.migrationAdditionalArgs,
-                    //additionalArgs: ["-v", "VERBOSITY=terse", "-v", "ON_ERROR_STOP=1"],
-                });
-                if (result != 0) {
-                    error("Finalize failed with exit code " + result + "., File: ", file);
-                }
+async function finalize(finalizeList, config, opt) {
+    if (finalizeList && finalizeList.length) {
+        for (let item of finalizeList) {
+            info(item.fileName + " ...");
+            var result = await run({
+                command: config.psql,
+                config: config,
+                file: item.filePath,
+                verbose: opt.verbose,
+                skipErrorDetails: false,
+                //additionalArgs: ["-v", "VERBOSITY=terse", "-v", "ON_ERROR_STOP=1"],
+            }, true);
+            if (result != 0) {
+                error("Finalize failed with exit code " + result + "., File: ", file);
             }
-            console.info("Finalize completed successfully.");
         }
-    }, 0);
+        console.info("Finalize completed successfully.");
+    }
 }
 

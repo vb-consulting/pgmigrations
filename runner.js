@@ -3,7 +3,9 @@ const cp = require("child_process");
 const {info, error, warning} = require("./log.js");
 const path = require("path");
 
-function run(options) {
+const migrationErrorTreshold = 1;
+
+function run(options, stdErrOnly) {
     var args = [];
 
     if (!options.command) {
@@ -65,6 +67,7 @@ function run(options) {
 
     var prefix = cmd + ":";
     var errorCount = 0;
+    var stdErrOnlyErrCount = 0;
 
     const message = (msg) => {
         if (!msg || msg == "DO") {
@@ -102,39 +105,72 @@ function run(options) {
         options.hasError = false;
         const child = cp.spawn(cmd, args, spawnOptions);
         if (!options.inherit) {
-            child.stdout.on("data", data => {
-                if (options.returnBuffer) {
-                    stdoutBuffer += data.toString().trim();
-                }
-                else if (data) {
-                    stdoutBuffer += data;
-                    let index = stdoutBuffer.indexOf(prefix);
-                    while (index !== -1) {
-                        const msg = stdoutBuffer.slice(0, index).trim();
-                        if (msg && !options.muted && (!options.config.migrationErrorTreshold || errorCount < options.config.migrationErrorTreshold)) {
-                            message(msg);
-                        }
-                        stdoutBuffer = stdoutBuffer.slice(index + prefix.length);
-                        index = stdoutBuffer.indexOf(prefix);
+            if (stdErrOnly) {
+                child.stdout.on("data", data => {
+                    if (options.returnBuffer) {
+                        stdoutBuffer += data.toString().trim();
                     }
-                }
-            });
+                    else if (data) {
+                        stdoutBuffer += data;
+                        let index = stdoutBuffer.indexOf(prefix);
+                        while (index !== -1) {
+                            const msg = stdoutBuffer.slice(0, index).trim();
+                            if (msg && !options.muted && (!migrationErrorTreshold || errorCount < migrationErrorTreshold)) {
+                                message(msg);
+                            }
+                            stdoutBuffer = stdoutBuffer.slice(index + prefix.length);
+                            index = stdoutBuffer.indexOf(prefix);
+                        }
+                    }
+                });
+            }
 
             child.stderr.on("data", data => {
                 if (data) {
-                    stderrBuffer += data;
-                    let index = stderrBuffer.indexOf(prefix);
-                    while (index !== -1) {
-                        const msg = stderrBuffer.slice(0, index).trim();
-                        if (msg && !options.muted && (!options.config.migrationErrorTreshold || errorCount < options.config.migrationErrorTreshold)) {
-                            message(msg);
+                    if (stdErrOnly) {
+                        var msg = data.toString().trim();
+                        if (msg && !options.muted && (!migrationErrorTreshold || errorCount < migrationErrorTreshold)) {
+                            msg = msg.replace("psql:", "");
+                            if (msg.indexOf(": ERROR: ") > -1) {
+                                stdErrOnlyErrCount++;
+                                if (stdErrOnlyErrCount > 1) {
+                                    errorCount++;
+                                    options.hasError = true;
+                                    fromError = 0;
+                                    return;
+                                }
+                                var lines = msg.split("\n");
+                                for (let i = 0; i < lines.length; i++) {
+                                    var line = lines[i];
+                                    if (line.indexOf(": ERROR: ") > -1) {
+                                        error(line);
+                                    } else {
+                                        info(line);
+                                    }
+                                }
+                            } else {
+                                var lines = msg.split("\n");
+                                for (let i = 0; i < lines.length; i++) {
+                                    var line = lines[i];
+                                    info(line);
+                                }
+                            }
                         }
-                        stderrBuffer = stderrBuffer.slice(index + prefix.length);
-                        index = stderrBuffer.indexOf(prefix);
+                    } else {
+                        stderrBuffer += data;
+                        let index = stderrBuffer.indexOf(prefix);
+                        while (index !== -1) {
+                            const msg = stderrBuffer.slice(0, index).trim();
+                            if (msg && !options.muted && (!migrationErrorTreshold || errorCount < migrationErrorTreshold)) {
+                                message(msg);
+                            }
+                            stderrBuffer = stderrBuffer.slice(index + prefix.length);
+                            index = stderrBuffer.indexOf(prefix);
+                        }
+                        // if (errorCount > 3) {
+                        //     child.kill(); // kill the process if there are more than one errors
+                        // }
                     }
-                    // if (errorCount > 3) {
-                    //     child.kill(); // kill the process if there are more than one errors
-                    // }
                 }
             });
             child.on("exit", code => {
@@ -148,20 +184,20 @@ function run(options) {
                 } else if (!options.muted) {
                     if (stdoutBuffer) {
                         const msg = stdoutBuffer.trim();
-                        if (msg && (!options.config.migrationErrorTreshold || errorCount < options.config.migrationErrorTreshold)) {
+                        if (msg && (!migrationErrorTreshold || errorCount < migrationErrorTreshold)) {
                             message(msg);
                         }
                     }
                     if (stderrBuffer) {
                         const msg = stderrBuffer.trim();
-                        if (msg && !options.skipErrorDetails && (!options.config.migrationErrorTreshold || errorCount < options.config.migrationErrorTreshold)) {
+                        if (msg && !options.skipErrorDetails && (!migrationErrorTreshold || errorCount < migrationErrorTreshold)) {
                             message(msg);
                         }
                     }
                     if (code !== 0) {
                         reject(code);
                     } else {
-                        if (options.hasError) {
+                        if (options.hasError || stdErrOnlyErrCount > 0) {
                             reject(code);
                         } else {
                             resolve(code);

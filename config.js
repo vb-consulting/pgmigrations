@@ -50,7 +50,6 @@ module.exports = {
     warnOnInvalidPrefix: true,
     parseScriptTags: true,
     parseEnvVars: true,
-    migrationErrorTreshold: 1,
     runOlderVersions: false,
     migrationAdditionalArgs: [],
     hashFunction: function(data) {
