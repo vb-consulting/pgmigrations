@@ -58,7 +58,7 @@ module.exports = async function(opt, config) {
 
     if (opt.list) {
         tests.forEach((test, index) => {
-            console.log(`${++index}. ${test.schema == "public" ? "" : test.schema + "."}${test.name}${test.comment ? " (" + test.comment.replace(/[\r\n\t]/g, " ").trim() + ")"  : ""}`)
+            info(`${++index}. ${test.schema == "public" ? "" : test.schema + "."}${test.name}${test.comment ? " (" + test.comment.replace(/[\r\n\t]/g, " ").trim() + ")"  : ""}`)
         });
         return;
     }
@@ -100,7 +100,7 @@ module.exports = async function(opt, config) {
         }
     }));
 
-    console.log();
+    info();
     passed(passedCount.toString());
     if (failedCount > 0) {
         failed(failedCount.toString());

@@ -155,7 +155,7 @@ module.exports = {
                     return;
                 }
                 if (opt.verbose) {
-                    console.log("Using migration directory: " + migrationDir);
+                    info("Using migration directory: " + migrationDir);
                 }
             }
         }
@@ -166,7 +166,7 @@ module.exports = {
                 return;
             }
             if (opt.verbose) {
-                console.log("Using migration directory: " + migrationDir);
+                info("Using migration directory: " + migrationDir);
             }
         }
     
@@ -177,12 +177,12 @@ module.exports = {
         {
             if (!fs.existsSync(config.tmpDir)) {
                 if (opt.verbose) {
-                    console.log("Creating tmp directory: " + config.tmpDir);
+                    info("Creating tmp directory: " + config.tmpDir);
                 }
                 fs.mkdirSync(config.tmpDir);
             } else if (!config.keepMigrationDirHistory) {
                 if (opt.verbose) {
-                    console.log("Clearing tmp directory: " + config.tmpDir);
+                    info("Clearing tmp directory: " + config.tmpDir);
                 }
                 fs.readdirSync(config.tmpDir).forEach(file => {
                     fs.unlinkSync(path.join(config.tmpDir, file));
@@ -197,7 +197,7 @@ module.exports = {
     
                 } else {
                     if (opt.verbose) {
-                        console.log("Creating history table...");
+                        info("Creating history table...");
                     }
                     var result = await command(formatByName(createHistoryTableScript, {
                         schema: config.historyTableSchema, 
@@ -350,7 +350,7 @@ module.exports = {
                     const script = ((hasMultipleDirs ? (migrationDir + "/" + fileName).replace(/\\/g, "/") : fileName).replace(/\/+/g, "/")).replace('./', "");
 
                     //const topDir = getDirectoryPath(script);
-                    //console.log(topDir);
+                    //info(topDir);
 
                     if (prefix.startsWith(config.upPrefix) || prefix.startsWith(config.downPrefix)) {
                         version = prefix.slice(config.upPrefix.length).trim();
@@ -358,7 +358,7 @@ module.exports = {
                             const dirs = migrationDir.replace(/\\/g, "/").split("/");
                             const topDir = dirs[dirs.length - 1];
                             //const parts = topDir.split(config.appendTopDirToVersionSplitBy);
-                            //console.log(topDir);
+                            //info(topDir);
                             if (topDir) {
                                 if (config.appendTopDirToVersionSplitBy) {
                                     //version = topDir + version;
@@ -604,7 +604,7 @@ module.exports = {
             if (opt.list) {
                 if (isUp) {
                     finalUpList.forEach((m, index) => {
-                        console.log({
+                        info({
                             rank: index+1,
                             name: m.name, 
                             version: m.version,
@@ -618,14 +618,14 @@ module.exports = {
                         info("");
                         warning("Finalize scripts:");
                         for (let item of finalizeList) {
-                            console.log(item);
+                            info(item);
                         }
                     }
                     return;
                 }
                 if (isDown) {
                     downList.forEach((m, index) => {
-                        console.log({
+                        info({
                             rank: index+1,
                             name: m.name, 
                             version: m.version,
@@ -639,7 +639,7 @@ module.exports = {
                         info("");
                         info("Finalize scripts:");
                         for (let item of finalizeList) {
-                            console.log(item);
+                            info(item);
                         }
                     }
                 }
@@ -663,7 +663,7 @@ module.exports = {
             const ident = date.toISOString().replace(/[-:.ZT]/g, "");
             tmpFile = path.join(config.tmpDir, `migration_${ident}.sql`);
             if (opt.verbose) {
-                console.log("Creating migration file: " + tmpFile);
+                info("Creating migration file: " + tmpFile);
             }
             if (fs.existsSync(tmpFile)) {
                 fs.unlinkSync(tmpFile);
@@ -780,7 +780,7 @@ $migration_${ident}$;`);
         if (opt.dump) {
             info("\n" + fs.readFileSync(tmpFile, { encoding: "utf8"}));
         } else {
-            console.log("Running migration...");
+            info("Running migration...");
             try {
 
                 var result = await run({

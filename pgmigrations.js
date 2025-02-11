@@ -17,14 +17,14 @@ var userConfigs = [defaultconfigFile, defaultconfigFile2];
 
 const envRegex = /\$\{([^}]+)\}/g;
 
-warning(require("./package.json").version);
+info("v"+require("./package.json").version);
 
 function buildConfig(opt) {
     for (var i = 0; i < userConfigs.length; i++) {
         var configFile = path.join(process.cwd(), userConfigs[i]);
         if (fs.existsSync(configFile) && fs.lstatSync(configFile).isFile()) {
             if (opt.verbose) {
-                console.log("Using default config file: " + configFile);
+                info("Using default config file: " + configFile);
             }
             var config = require(configFile);
 
@@ -43,8 +43,11 @@ function buildConfig(opt) {
 
     if (mainConfig.env) {
         if (typeof mainConfig.env === "string") {
+            if (!fs.existsSync(path.resolve(mainConfig.env))) {
+                warning("Env file not found: " + mainConfig.env + ". Please provide a valid env file.");
+            }
             require('dotenv').config({ 
-                path: path.resolve(__dirname, mainConfig.env)
+                path: path.resolve(mainConfig.env)
             });
         } else {
             require('dotenv').config();
@@ -66,29 +69,29 @@ function buildConfig(opt) {
 
 if (!cmd) {
     error("Command is required. Please provide a valid command.");
-    return;
+    cmd = "help";
 }
 
 cmd = cmd.toLowerCase();
 
 if (!cmd || cmd === 'help' || cmd === '-h' || cmd === '--help') {
 
-    console.log('Usage:');
+    info('Usage:');
     info('pgmigrations [command] [switches]');
-    console.log('\nCommands:');
+    info('\nCommands:');
     
     sections([  
         {key: "up", value: "Run migrations migrations in order: before, before repeatable, up, repeatable, after. Optional switches: --list, --dry, --full, --dump."},
         {key: "down", value: "Run only down migrations. Optional switches: --list, --dry, --full, --dump."},
-        {key: "history", value: "console.log the current migration schema history."},
+        {key: "history", value: "info the current migration schema history."},
         {key: "run | exec", value: "Run a command or a script file or script directory with psql. Command text or a script file is required as the second argument. Any additional arguments will be passed to a psql command."},
         {key: "dump | schema", value: "Run pg_dump command with --schema-only --encoding=UTF8 swtiches on (plus schemaDumpAdditionalArgs from the config). Any additional arguments will be passed to pg_dump command."},
         {key: "psql", value: "Run arbitrary psql command or open psql shell. Any additional arguments will be passed to a psql."},
         {key: "test", value: "Run database tests."},
-        {key: "config", value: "console.log the current configuration."},
+        {key: "config", value: "info the current configuration."},
     ], 16);
     
-    console.log('\nSwitches:');
+    info('\nSwitches:');
 
     sections([
         {key: "-h, --help", value: "Show help"},
@@ -99,13 +102,13 @@ if (!cmd || cmd === 'help' || cmd === '-h' || cmd === '--help') {
         {key: "--verbose", value: "Run in verbose mode. This switch applies to all commands. Default is false."}
     ], 16);
 
-    console.log('\nConfigurations files:');
+    info('\nConfigurations files:');
     sections([
         {key: '', value: './db.js or ./pgmigrations.js from the current dir is the default configuration file. It will be ignored if not found.'},
         {key: '--config=[file]', value: 'Set the custom config file or multiple files (multiple --config switches). Config files are merged in the order they are provided.'}
     ], 16);
 
-    console.log();
+    info("");
     return;
 }
 
@@ -313,7 +316,7 @@ if (cmd == "up" || cmd == "down") {
     }
 
     const config = buildConfig({verbose});
-    console.log(config);
+    info(config);
 
 } else if (cmd == "history") {
 
