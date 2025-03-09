@@ -1,6 +1,6 @@
 const fs = require("fs");
 const cp = require("child_process");
-const {info, error, warning} = require("./log.js");
+const {info, error, warning, logDataMsg} = require("./log.js");
 const path = require("path");
 
 const migrationErrorTreshold = 1;
@@ -130,7 +130,7 @@ function run(options, stdErrOnly) {
                     if (stdErrOnly) {
                         var msg = data.toString().trim();
                         if (msg && !options.muted && (!migrationErrorTreshold || errorCount < migrationErrorTreshold)) {
-                            msg = msg.replace("psql:", "");
+
                             if (msg.indexOf(": ERROR: ") > -1) {
                                 stdErrOnlyErrCount++;
                                 if (stdErrOnlyErrCount > 1) {
@@ -139,21 +139,9 @@ function run(options, stdErrOnly) {
                                     fromError = 0;
                                     return;
                                 }
-                                var lines = msg.split("\n");
-                                for (let i = 0; i < lines.length; i++) {
-                                    var line = lines[i];
-                                    if (line.indexOf(": ERROR: ") > -1) {
-                                        error(line);
-                                    } else {
-                                        info(line);
-                                    }
-                                }
+                                logDataMsg(msg);
                             } else {
-                                var lines = msg.split("\n");
-                                for (let i = 0; i < lines.length; i++) {
-                                    var line = lines[i];
-                                    info(line);
-                                }
+                                logDataMsg(msg);
                             }
                         }
                     } else {
