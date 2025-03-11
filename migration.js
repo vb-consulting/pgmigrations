@@ -3,6 +3,7 @@ const { error, warning, info } = require("./log.js");
 const { query, command, run } = require("./runner.js");
 const fs = require("fs");
 
+/*
 const types = {
     repetable: "R",
     up: "U",
@@ -11,14 +12,14 @@ const types = {
     before: "B",
     after: "A",
 };
-
-const names = {
-    "R": "REPEATABLE",
-    "U": "VERSION UP",
-    "D": "VERSION DOWN",
-    "P": "REPEATABLE BEFORE",
-    "B": "BEFORE MIGRATIONS",
-    "A": "AFTER MIGRATIONS",
+*/
+const migTypes = {
+    repetable: "REPEATABLE",
+    up: "VERSION UP",
+    down: "VERSION DOWN",
+    repetableBefore: "REPEATABLE BEFORE",
+    before: "BEFORE MIGRATIONS",
+    after: "AFTER MIGRATIONS",
 };
 
 const createHistoryTableScript = `
@@ -35,7 +36,7 @@ begin
         (
             rank int,
             name text not null,
-            type char not null check (type in ({types})),
+            type text not null check (type in ({types})),
             version text,
             script text not null,
             hash text not null,
@@ -202,7 +203,7 @@ module.exports = {
                     var result = await command(formatByName(createHistoryTableScript, {
                         schema: config.historyTableSchema, 
                         name: config.historyTableName, 
-                        types: Object.values(types).map(t => `'${t}'`).join(",")
+                        types: Object.values(migTypes).map(t => `'${t}'`).join(",")
                     }), opt, [], config, true);
                     
                     if (result != 0) {
@@ -215,10 +216,10 @@ module.exports = {
             var repetableHashes = {};
             var versionDict = {};
             history.forEach(h => {
-                if (h.type == types.repetable || h.type == types.repetableBefore) {
+                if (h.type == migTypes.repetable || h.type == migTypes.repetableBefore) {
                     repetableHashes[h.hash + ";" + h.script] = h;
                 }
-                if (h.type == types.up) {
+                if (h.type == migTypes.up) {
                     versionDict[h.version] = h;
                 }
             });
@@ -413,7 +414,7 @@ module.exports = {
                                 return;
                             }
                             upVersions[version] = script;
-                            type = types.up;
+                            type = migTypes.up;
     
                             if (!version) {
                                 warning(`Migration file ${migrationDir}/${fileName} does not contain version. Skipping...`);
@@ -450,7 +451,7 @@ module.exports = {
                                 return;
                             }
                             downVersions[version] = script;
-                            type = types.down;
+                            type = migTypes.down;
     
                             if (!version) {
                                 warning(`Migration file ${migrationDir}/${fileName} does not contain version. Skipping...`);
@@ -474,7 +475,7 @@ module.exports = {
     
                     } else if (prefix == config.repetablePrefix || repetableDirsHash[migrationDir]) {
                         if (isUp) {
-                            type = types.repetable;
+                            type = migTypes.repetable;
     
                             if (repetableHashes[hash + ";" + script]) {
                                 return;
@@ -483,7 +484,7 @@ module.exports = {
                         }
                     } else if (prefix == config.repetableBeforePrefix || repetableBeforeDirsHash[migrationDir]) {
                         if (isUp) {
-                            type = types.repetableBefore;
+                            type = migTypes.repetableBefore;
 
                             if (repetableHashes[hash + ";" + script]) {
                                 //pushTo = null;
@@ -493,13 +494,13 @@ module.exports = {
                         }
                     } else if (prefix == config.beforePrefix || beforeDirsHash[migrationDir]) {
                         if (isUp) {
-                            type = types.before;
+                            type = migTypes.before;
                             pushTo = beforeList;
                         }
     
                     } else if (prefix == config.afterPrefix || afterDirsHash[migrationDir]) {
                         if (isUp) {
-                            type = types.after;
+                            type = migTypes.after;
                             pushTo = afterList;
                         }
 
@@ -508,7 +509,7 @@ module.exports = {
                     } else {
                         if (config.allFilesAreRepetable) {
                             if (isUp) {
-                                type = types.repetable;
+                                type = migTypes.repetable;
         
                                 if (repetableHashes[hash + ";" + script]) {
                                     return;
@@ -608,7 +609,7 @@ module.exports = {
                             rank: index+1,
                             name: m.name, 
                             version: m.version,
-                            type: names[m.type],
+                            type: m.type,
                             script: m.script,
                             hash: m.hash
                         })
@@ -629,7 +630,7 @@ module.exports = {
                             rank: index+1,
                             name: m.name, 
                             version: m.version,
-                            type: names[m.type],
+                            type: m.type,
                             script: m.script,
                             hash: m.hash
                         })
@@ -673,8 +674,8 @@ module.exports = {
             let index = 0;
             const addMigration = list => list.forEach(m => {
                 index++;
-                const cleanUp = m.type == types.down ? 
-                    `delete from ${config.historyTableSchema}.${config.historyTableName} where name = '${m.meta.up.name}' and type = '${types.up}';` : 
+                const cleanUp = m.type == migTypes.down ? 
+                    `delete from ${config.historyTableSchema}.${config.historyTableName} where name = '${m.meta.up.name}' and type = '${migTypes.up}';` : 
                     formatByName(upsertHistorySql(config), {  
                         historySchema: config.historyTableSchema, 
                         historyName: config.historyTableName,
@@ -688,7 +689,7 @@ module.exports = {
                     line(`--
 -- Migration ${index}
 -- Script: ${m.script}
--- Type: ${names[m.type]}
+-- Type: ${m.type}
 --`);
                 if (config.useProceduralScript) {
                     line(`raise info 'Running migration %: %. Script file: %', ${index}, '${m.name}', '${m.script}';
