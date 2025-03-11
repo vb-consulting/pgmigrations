@@ -160,17 +160,17 @@ Examples:
 
 `R__my_migration.sql`
 
-`R_before__my_migration.sql`
+`_R__my_migration.sql`
 
-`after__my_migration.sql`
+`A__my_migration.sql`
 
-`after__my_migration.sql`
+`B__my_migration.sql`
 
 
 - `R` is a prefix for repeatable migration. Prefix is configurable.
-- `R_before` is a prefix for repeatable before migration. Prefix is configurable.
-- `before` is a prefix for before migration. Prefix is configurable.
-- `after` is a prefix for before migration. Prefix is configurable.
+- `_R` is a prefix for repeatable before migration. Prefix is configurable.
+- `B` is a prefix for before migration. Prefix is configurable.
+- `A` is a prefix for before migration. Prefix is configurable.
 - `__` is a separator. Separator is configurable.
 - `my_migration` and `undo_my_migration` are migration descriptions. This goes to the migration table as the description without underscores.
 - `.sql` is the migration suffix. This goes to the migration table as the type with the removed dot and in uppercase.
@@ -305,15 +305,15 @@ Repeatable migration type prefix. The default is `R` (R for repeatable).
 
 #### repetableBeforePrefix
 
-Repeatable before migration type prefix. The default is `R_before` (R for repeatable).
+Repeatable before migration type prefix. The default is `_R` (R for repeatable).
 
 #### beforePrefix
 
-Before migration type prefix. The default is `before`.
+Before migration type prefix. The default is `B`.
 
 #### afterPrefix
 
-The after migration type prefix. The default is `after`.
+The after migration type prefix. The default is `A`.
 
 #### separatorPrefix
 
