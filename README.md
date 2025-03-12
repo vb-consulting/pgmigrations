@@ -162,15 +162,15 @@ Examples:
 
 `_R__my_migration.sql`
 
-`A__my_migration.sql`
+`_A__my_migration.sql`
 
-`B__my_migration.sql`
+`_B__my_migration.sql`
 
 
 - `R` is a prefix for repeatable migration. Prefix is configurable.
 - `_R` is a prefix for repeatable before migration. Prefix is configurable.
-- `B` is a prefix for before migration. Prefix is configurable.
-- `A` is a prefix for before migration. Prefix is configurable.
+- `_B` is a prefix for before migration. Prefix is configurable.
+- `_A` is a prefix for before migration. Prefix is configurable.
 - `__` is a separator. Separator is configurable.
 - `my_migration` and `undo_my_migration` are migration descriptions. This goes to the migration table as the description without underscores.
 - `.sql` is the migration suffix. This goes to the migration table as the type with the removed dot and in uppercase.
