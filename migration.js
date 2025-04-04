@@ -73,7 +73,11 @@ const importTag = "# import";
 const envRegex = /\$\{([^}]+)\}/g;
 
 function parseContent(filePath, config, opt) {
+    // Read file content as string
     var content = fs.readFileSync(filePath).toString();
+    
+    // Normalize line endings to LF (Unix style) regardless of OS
+    content = content.replace(/\r\n/g, '\n');
     
     if (!config.parseScriptTags && !config.parseEnvVars) {
         return content;
@@ -85,7 +89,9 @@ function parseContent(filePath, config, opt) {
             var importIndexOf = line.indexOf(importTag);
             if (importIndexOf != -1) {
                 const filename = line.substring(importIndexOf + importTag.length).trim();
-                return `${line}\n${fs.readFileSync(filename, "utf8")}`;
+                // Also normalize included file content
+                let importedContent = fs.readFileSync(filename, "utf8").replace(/\r\n/g, '\n');
+                return `${line}\n${importedContent}`;
             } else {
                 return line;
             }
